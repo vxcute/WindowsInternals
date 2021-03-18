@@ -1,14 +1,4 @@
-__int64 __fastcall MiReadWriteVirtualMemory
-
-(
-  HANDLE ProcessHandle, 
-  size_t BaseAddress, 
-  size_t Buffer, 
-  size_t BufferSize,
-  __int64 NumberOfBytesToReaden, 
-  ACCESS_MASK DesiredAccess
-  )
-  
+__int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAddress, size_t Buffer, size_t BufferSize, __int64 NumberOfBytesToReaden, ACCESS_MASK DesiredAccess)
 {
   int BaseAddr; // er13
   __int64 value; // rsi
@@ -44,7 +34,7 @@ __int64 __fastcall MiReadWriteVirtualMemory
       || Buffer + BufferSize < Buffer
       || Buffer + BufferSize > 0x7FFFFFFF0000i64 )
     {
-      return 3221225477i64;
+      return 0xC0000005i64;
     }
     NumberOfBytesReaden_x = (_QWORD *)NumberOfBytesToReaden;
     if ( NumberOfBytesToReaden )
@@ -76,9 +66,9 @@ __int64 __fastcall MiReadWriteVirtualMemory
       Process = CurrentThread->ApcState.Process;
       Object[1] = Process;
       Obj = Object[0];
-      if ( (*((_BYTE *)Object[0] + 992) & 1) == 0 || Process == Object[0] || *((_QWORD *)Object[0] + 175) )
+      if ( (*((_BYTE *)Object[0] + 0x3E0) & 1) == 0 || Process == Object[0] || *((_QWORD *)Object[0] + 0xAF) )
       {
-        if ( DesiredAccess == 16 )
+        if ( DesiredAccess == 0x10 )
         {
           TargetAddress = Buf;
           TargetProcess = (int)Process;
@@ -94,9 +84,9 @@ __int64 __fastcall MiReadWriteVirtualMemory
         }
         MmCopy = MmCopyVirtualMemory(
                    SourceProcess,
-                   SourceAddress,
+                   (char *)SourceAddress,
                    TargetProcess,
-                   TargetAddress,
+                   (char *)TargetAddress,
                    BufferSize,
                    PreviousMode_x,
                    (__int64)&ReturnSize);
@@ -105,10 +95,10 @@ __int64 __fastcall MiReadWriteVirtualMemory
       }
       else
       {
-        ObjectRef = -1073741819;
+        ObjectRef = 0xC0000005;
       }
-      if ( (unsigned int)PsIsProcessLoggingEnabled(Obj, DesiredAccess) )
-        EtwTiLogReadWriteVm(ObjectRef, v22, (_DWORD)Obj, DesiredAccess, BaseAddr, value);
+      if ( (unsigned int)((__int64 (__fastcall *)(PVOID, _QWORD))PsIsProcessLoggingEnabled)(Obj, DesiredAccess) )
+        EtwTiLogReadWriteVm(ObjectRef, v22, (unsigned int)Obj, DesiredAccess, BaseAddr, value);
       ObfDereferenceObjectWithTag(Obj, 0x6D566D4Du);
     }
   }
