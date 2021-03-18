@@ -82,7 +82,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
                     SourceAddress = Buf;
                     SourceProcess = (int)Process;         // Since Process Will Be The Source and Our Process Will Be The Target Process or the Distnation Set SourceProcess To Be Input Process Parameter 
                 }
-                MmCopy = MmCopyVirtualMemory(           // Initlize MmCopyVirtualMemory using What We End Up With 
+                MmCopy = MmCopyVirtualMemory(           // Use MmCopyVirtualMemory To Read or Write Based on What We End Up With 
                     SourceProcess,
                     (char*)SourceAddress,
                     TargetProcess,
