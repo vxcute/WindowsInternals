@@ -4,7 +4,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
     __int64 value; // rsi
     struct _KTHREAD* CurrentThread; // r14
     KPROCESSOR_MODE PreviousMode; // al
-    UINT64 NumberOfBytesReaden_x; // rbx
+    UINT64 * NumberOfBytesReaden_x; // rbx
     __int64 BytesReaden; // rcx
     NTSTATUS ObjectRef; // edi
     struct KPROCESS* Process; // r10
@@ -42,7 +42,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
             BytesReaden = NumberOfBytesToReaden;
             if ((unsigned __int64)NumberOfBytesToReaden >= 0x7FFFFFFF0000i64)
                 BytesReaden = 0x7FFFFFFF0000i64;
-            *(UINT64 *)BytesReaden = *(UINT64 *)BytesReaden;
+            *(UINT64*)BytesReaden = *(UINT64 *)BytesReaden;
         }
     }
     else
@@ -53,10 +53,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
     ObjectRef = 0;
     if (BufferSize)                             // Check If BufferSize Is Bigger Than 0 
     {
-        /// increments the reference count of the object that is identified by the specified handle (Process)
-        /// The object manager maintains a count of the number of references to an object. When an object is created, the object manager sets the object's reference count to one. Once that counter falls to zero, the object is freed
-        
-        ObjectRef = ObReferenceObjectByHandleWithTag(
+        ObjectRef = ObReferenceObjectByHandleWithTag(// increments the reference count of the object that is identified by the specified handle (Process)
             ProcessHandle,
             DesiredAccess,
             (POBJECT_TYPE)PsProcessType,
@@ -64,30 +61,28 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
             0x6D566D4Du,
             Object,
             0i64);
-
         if (ObjectRef >= 0)
         {
             Process = CurrentThread->ApcState.Process;
             Object[1] = Process;
             Obj = Object[0];
-            if ((*((BYTE*)Object[0] + 0x3E0) & 1) == 0 || Process == Object[0] || *((UINT64 *)Object[0] + 0xAF))
+            if ((*((BYTE*)Object[0] + 0x3E0) & 1) == 0 || Process == Object[0] || *(UINT64*)Object[0] + 0xAF)
             {
-                if (DesiredAccess == 0x10)
+                if (DesiredAccess == 0x10)               // Write Process Virtual Memory 
                 {
                     TargetAddress = Buf;
-                    TargetProcess = (int)Process;
+                    TargetProcess = (int)Process;         // Since The Process We Are Writing To Is Process Set TargetProcess 
                     SourceAddress = BaseAddr;
-                    SourceProcess = (int)Object[0];
+                    SourceProcess = (int)Object[0];       // SourceProcess = Process That Is Writing 
                 }
-                else
+                else                                    // Else Read Process Virtual Memory 
                 {
                     TargetAddress = BaseAddr;
-                    TargetProcess = (int)Object[0];
+                    TargetProcess = (int)Object[0];       // Object[0] = Our Process Since We Will Be Reading The Output Will Directed To It So Set It To Be TargetProcess 
                     SourceAddress = Buf;
-                    SourceProcess = (int)Process;
+                    SourceProcess = (int)Process;         // Since Process Will Be The Source and Our Process Will Be The Target Process or the Distnation Set SourceProcess To Be Input Process Parameter 
                 }
-                // Use MmCopyVirtualMemory To Read or Write To The Process 
-                MmCopy = MmCopyVirtualMemory(
+                MmCopy = MmCopyVirtualMemory(           // Initlize MmCopyVirtualMemory using What We End Up With 
                     SourceProcess,
                     (char*)SourceAddress,
                     TargetProcess,
@@ -102,9 +97,13 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
             {
                 ObjectRef = 0xC0000005;
             }
-            if ((unsigned int)((__int64(__fastcall*)(PVOID, UINT64 ))PsIsProcessLoggingEnabled)(Obj, DesiredAccess))
+
+            // Check If Process Logging Is Enabled
+            // If Log The Read or Write To The Process 
+
+            if ((unsigned int)((__int64(__fastcall*)(PVOID, UINT64))PsIsProcessLoggingEnabled)(Obj, DesiredAccess)) 
                 EtwTiLogReadWriteVm(ObjectRef, v22, (unsigned int)Obj, DesiredAccess, BaseAddr, value);
-            ObfDereferenceObjectWithTag(Obj, 0x6D566D4Du);
+            ObfDereferenceObjectWithTag(Obj, 0x6D566D4Du);// Decrements The Reference Count To The Object (Process)  
         }
     }
     if (NumberOfBytesReaden_x)
