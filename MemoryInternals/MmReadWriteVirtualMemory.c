@@ -24,20 +24,20 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
   BaseAddr = BaseAddress;
   value = 0i64;
   Object[0] = 0i64;
-  CurrentThread = KeGetCurrentThread();
-  PreviousMode = CurrentThread->PreviousMode;
+  CurrentThread = KeGetCurrentThread();         // Get Current Thread Information of Thread Is Stored In KTHREAD Structure Since KeGetCurrentThread Returns KTHREAD  
+  PreviousMode = CurrentThread->PreviousMode;   // Store PreviousMode of Thread In a Temp Variable 
   PreviousMode_x = PreviousMode;
-  if ( PreviousMode )
+  if ( PreviousMode )                           // If Previous Mode Is Bigger Than 0 
   {
-    if ( BufferSize + BaseAddress < BaseAddress
-      || BufferSize + BaseAddress > 0x7FFFFFFF0000i64
-      || Buffer + BufferSize < Buffer
-      || Buffer + BufferSize > 0x7FFFFFFF0000i64 )
+    if ( BufferSize + BaseAddress < BaseAddress // Check If BufferSize + BaseAddress Is Less Than BaseAddress 
+      || BufferSize + BaseAddress > 0x7FFFFFFF0000i64// Check If BufferSize + BaseAddress Is BiggerThan User Space Memory Address Limit 
+      || Buffer + BufferSize < Buffer           // Check If Buffer + BufferSize Less Than Buffer 
+      || Buffer + BufferSize > 0x7FFFFFFF0000i64 )// Check If Buffer + BufferSize Is Bigger Than User Memory Address Space Limit 
     {
-      return 0xC0000005i64;
+      return 0xC0000005i64;                     // If The Conditions are met return This Value 
     }
     NumberOfBytesReaden_x = (_QWORD *)NumberOfBytesToReaden;
-    if ( NumberOfBytesToReaden )
+    if ( NumberOfBytesToReaden )                // If Number Of Bytes To Read Is Bigger Than Zero 
     {
       BytesReaden = NumberOfBytesToReaden;
       if ( (unsigned __int64)NumberOfBytesToReaden >= 0x7FFFFFFF0000i64 )
@@ -51,7 +51,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
   }
   ReturnSize = 0i64;
   ObjectRef = 0;
-  if ( BufferSize )
+  if ( BufferSize )                             // Check If BufferSize Is Bigger Than 0 
   {
     ObjectRef = ObReferenceObjectByHandleWithTag(
                   ProcessHandle,
