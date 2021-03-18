@@ -1,108 +1,113 @@
 __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAddress, size_t Buffer, size_t BufferSize, __int64 NumberOfBytesToReaden, ACCESS_MASK DesiredAccess)
 {
-  int BaseAddr; // er13
-  __int64 value; // rsi
-  struct _KTHREAD *CurrentThread; // r14
-  KPROCESSOR_MODE PreviousMode; // al
-  _QWORD *NumberOfBytesReaden_x; // rbx
-  __int64 BytesReaden; // rcx
-  NTSTATUS ObjectRef; // edi
-  _KPROCESS *Process; // r10
-  PVOID Obj; // r14
-  int TargetAddress; // er9
-  int TargetProcess; // er8
-  int SourceAddress; // edx
-  int SourceProcess; // ecx
-  NTSTATUS MmCopy; // eax
-  int v22; // er10
-  char PreviousMode_x; // [rsp+40h] [rbp-48h]
-  __int64 ReturnSize; // [rsp+48h] [rbp-40h] BYREF
-  PVOID Object[2]; // [rsp+50h] [rbp-38h] BYREF
-  int Buf; // [rsp+A0h] [rbp+18h]
+    int BaseAddr; // er13
+    __int64 value; // rsi
+    struct _KTHREAD* CurrentThread; // r14
+    KPROCESSOR_MODE PreviousMode; // al
+    UINT64 NumberOfBytesReaden_x; // rbx
+    __int64 BytesReaden; // rcx
+    NTSTATUS ObjectRef; // edi
+    struct KPROCESS* Process; // r10
+    PVOID Obj; // r14
+    int TargetAddress; // er9
+    int TargetProcess; // er8
+    int SourceAddress; // edx
+    int SourceProcess; // ecx
+    NTSTATUS MmCopy; // eax
+    int v22; // er10
+    char PreviousMode_x; // [rsp+40h] [rbp-48h]
+    __int64 ReturnSize; // [rsp+48h] [rbp-40h] BYREF
+    PVOID Object[2]; // [rsp+50h] [rbp-38h] BYREF
+    int Buf; // [rsp+A0h] [rbp+18h]
 
-  Buf = Buffer;
-  BaseAddr = BaseAddress;
-  value = 0i64;
-  Object[0] = 0i64;
-  CurrentThread = KeGetCurrentThread();         // Get Current Thread Information of Thread Is Stored In KTHREAD Structure Since KeGetCurrentThread Returns KTHREAD  
-  PreviousMode = CurrentThread->PreviousMode;   // Store PreviousMode of Thread In a Temp Variable 
-  PreviousMode_x = PreviousMode;
-  if ( PreviousMode )                           // If Previous Mode Is Bigger Than 0 
-  {
-    if ( BufferSize + BaseAddress < BaseAddress // Check If BufferSize + BaseAddress Is Less Than BaseAddress 
-      || BufferSize + BaseAddress > 0x7FFFFFFF0000i64// Check If BufferSize + BaseAddress Is BiggerThan User Space Memory Address Limit 
-      || Buffer + BufferSize < Buffer           // Check If Buffer + BufferSize Less Than Buffer 
-      || Buffer + BufferSize > 0x7FFFFFFF0000i64 )// Check If Buffer + BufferSize Is Bigger Than User Memory Address Space Limit 
+    Buf = Buffer;
+    BaseAddr = BaseAddress;
+    value = 0i64;
+    Object[0] = 0i64;
+    CurrentThread = KeGetCurrentThread();         // Get Current Thread Information of Thread Is Stored In KTHREAD Structure Since KeGetCurrentThread Returns KTHREAD  
+    PreviousMode = CurrentThread->PreviousMode;   // Store PreviousMode of Thread In a Temp Variable 
+    PreviousMode_x = PreviousMode;
+    if (PreviousMode)                           // If Previous Mode Is Bigger Than 0 
     {
-      return 0xC0000005i64;                     // If The Conditions are met return This Value 
-    }
-    NumberOfBytesReaden_x = (_QWORD *)NumberOfBytesToReaden;
-    if ( NumberOfBytesToReaden )                // If Number Of Bytes To Read Is Bigger Than Zero 
-    {
-      BytesReaden = NumberOfBytesToReaden;
-      if ( (unsigned __int64)NumberOfBytesToReaden >= 0x7FFFFFFF0000i64 )
-        BytesReaden = 0x7FFFFFFF0000i64;
-      *(_QWORD *)BytesReaden = *(_QWORD *)BytesReaden;
-    }
-  }
-  else
-  {
-    NumberOfBytesReaden_x = (_QWORD *)NumberOfBytesToReaden;
-  }
-  ReturnSize = 0i64;
-  ObjectRef = 0;
-  if ( BufferSize )                             // Check If BufferSize Is Bigger Than 0 
-  {
-    ObjectRef = ObReferenceObjectByHandleWithTag(
-                  ProcessHandle,
-                  DesiredAccess,
-                  (POBJECT_TYPE)PsProcessType,
-                  PreviousMode,
-                  0x6D566D4Du,
-                  Object,
-                  0i64);
-    if ( ObjectRef >= 0 )
-    {
-      Process = CurrentThread->ApcState.Process;
-      Object[1] = Process;
-      Obj = Object[0];
-      if ( (*((_BYTE *)Object[0] + 0x3E0) & 1) == 0 || Process == Object[0] || *((_QWORD *)Object[0] + 0xAF) )
-      {
-        if ( DesiredAccess == 0x10 )
+        if (BufferSize + BaseAddress < BaseAddress // Check If BufferSize + BaseAddress Is Less Than BaseAddress 
+            || BufferSize + BaseAddress > 0x7FFFFFFF0000i64// Check If BufferSize + BaseAddress Is BiggerThan User Space Memory Address Limit 
+            || Buffer + BufferSize < Buffer           // Check If Buffer + BufferSize Less Than Buffer 
+            || Buffer + BufferSize > 0x7FFFFFFF0000i64)// Check If Buffer + BufferSize Is Bigger Than User Memory Address Space Limit 
         {
-          TargetAddress = Buf;
-          TargetProcess = (int)Process;
-          SourceAddress = BaseAddr;
-          SourceProcess = (int)Object[0];
+            return 0xC0000005i64;                     // If The Conditions are met return This Value 
         }
-        else
+        NumberOfBytesReaden_x = (UINT64 *)NumberOfBytesToReaden;
+        if (NumberOfBytesToReaden)                // If Number Of Bytes To Read Is Bigger Than Zero 
         {
-          TargetAddress = BaseAddr;
-          TargetProcess = (int)Object[0];
-          SourceAddress = Buf;
-          SourceProcess = (int)Process;
+            BytesReaden = NumberOfBytesToReaden;
+            if ((unsigned __int64)NumberOfBytesToReaden >= 0x7FFFFFFF0000i64)
+                BytesReaden = 0x7FFFFFFF0000i64;
+            *(UINT64 *)BytesReaden = *(UINT64 *)BytesReaden;
         }
-        MmCopy = MmCopyVirtualMemory(
-                   SourceProcess,
-                   (char *)SourceAddress,
-                   TargetProcess,
-                   (char *)TargetAddress,
-                   BufferSize,
-                   PreviousMode_x,
-                   (__int64)&ReturnSize);
-        value = ReturnSize;
-        ObjectRef = MmCopy;
-      }
-      else
-      {
-        ObjectRef = 0xC0000005;
-      }
-      if ( (unsigned int)((__int64 (__fastcall *)(PVOID, _QWORD))PsIsProcessLoggingEnabled)(Obj, DesiredAccess) )
-        EtwTiLogReadWriteVm(ObjectRef, v22, (unsigned int)Obj, DesiredAccess, BaseAddr, value);
-      ObfDereferenceObjectWithTag(Obj, 0x6D566D4Du);
     }
-  }
-  if ( NumberOfBytesReaden_x )
-    *NumberOfBytesReaden_x = value;
-  return (unsigned int)ObjectRef;
+    else
+    {
+        NumberOfBytesReaden_x = (UINT64 *)NumberOfBytesToReaden;
+    }
+    ReturnSize = 0i64;
+    ObjectRef = 0;
+    if (BufferSize)                             // Check If BufferSize Is Bigger Than 0 
+    {
+        /// increments the reference count of the object that is identified by the specified handle (Process)
+        /// The object manager maintains a count of the number of references to an object. When an object is created, the object manager sets the object's reference count to one. Once that counter falls to zero, the object is freed
+        
+        ObjectRef = ObReferenceObjectByHandleWithTag(
+            ProcessHandle,
+            DesiredAccess,
+            (POBJECT_TYPE)PsProcessType,
+            PreviousMode,
+            0x6D566D4Du,
+            Object,
+            0i64);
+
+        if (ObjectRef >= 0)
+        {
+            Process = CurrentThread->ApcState.Process;
+            Object[1] = Process;
+            Obj = Object[0];
+            if ((*((BYTE*)Object[0] + 0x3E0) & 1) == 0 || Process == Object[0] || *((UINT64 *)Object[0] + 0xAF))
+            {
+                if (DesiredAccess == 0x10)
+                {
+                    TargetAddress = Buf;
+                    TargetProcess = (int)Process;
+                    SourceAddress = BaseAddr;
+                    SourceProcess = (int)Object[0];
+                }
+                else
+                {
+                    TargetAddress = BaseAddr;
+                    TargetProcess = (int)Object[0];
+                    SourceAddress = Buf;
+                    SourceProcess = (int)Process;
+                }
+                // Use MmCopyVirtualMemory To Read or Write To The Process 
+                MmCopy = MmCopyVirtualMemory(
+                    SourceProcess,
+                    (char*)SourceAddress,
+                    TargetProcess,
+                    (char*)TargetAddress,
+                    BufferSize,
+                    PreviousMode_x,
+                    (__int64)&ReturnSize);
+                value = ReturnSize;
+                ObjectRef = MmCopy;
+            }
+            else
+            {
+                ObjectRef = 0xC0000005;
+            }
+            if ((unsigned int)((__int64(__fastcall*)(PVOID, UINT64 ))PsIsProcessLoggingEnabled)(Obj, DesiredAccess))
+                EtwTiLogReadWriteVm(ObjectRef, v22, (unsigned int)Obj, DesiredAccess, BaseAddr, value);
+            ObfDereferenceObjectWithTag(Obj, 0x6D566D4Du);
+        }
+    }
+    if (NumberOfBytesReaden_x)
+        *NumberOfBytesReaden_x = value;
+    return (unsigned int)ObjectRef;
 }
