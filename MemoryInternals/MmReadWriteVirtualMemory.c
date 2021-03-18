@@ -1,4 +1,14 @@
-__int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAddress, size_t Buffer, size_t BufferSize, __int64 NumberOfBytesToReaden, ACCESS_MASK DesiredAccess)
+__int64 __fastcall MiReadWriteVirtualMemory
+
+(
+  HANDLE ProcessHandle, 
+  size_t BaseAddress, 
+  size_t Buffer, 
+  size_t BufferSize,
+  __int64 NumberOfBytesToReaden, 
+  ACCESS_MASK DesiredAccess
+  )
+  
 {
   int BaseAddr; // er13
   __int64 value; // rsi
