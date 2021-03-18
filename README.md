@@ -1,2 +1,2 @@
 # NtoskrnlReversing-
-Ntoskrnl Reverse Engineering 
+Ntoskrnl Reverse Engineering Edited IDA Pro Decompiler Output By Renaming Function Params, Variables Putting Comments etc ... 
