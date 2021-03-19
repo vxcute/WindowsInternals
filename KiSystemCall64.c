@@ -10,7 +10,7 @@ __int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4
   __int128 v12; // xmm3
   __int128 v13; // xmm4
   __int128 v14; // xmm5
-  unsigned __int64 v15; // rcx
+  unsigned __int64 ActiveProcessorCount; // rcx
   unsigned __int8 v16; // al
   struct _KTHREAD *v17; // rbx
   bool _ZF; // zf
@@ -101,16 +101,16 @@ __int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4
   v65 = v5;
   v66 = v7;
   v67 = a2;
-  v15 = *(_QWORD *)&KeGetCurrentThread()->Process[2].ActiveProcessors.Count;
-  __writegsqword(0x270u, v15);
+  ActiveProcessorCount = *(_QWORD *)&KeGetCurrentThread()->Process[2].ActiveProcessors.Count;
+  __writegsqword(0x270u, ActiveProcessorCount);
   __writegsbyte(0x851u, KeGetPcr()->Prcb.BpbRetpolineExitSpecCtrl);
-  LOBYTE(v15) = KeGetPcr()->Prcb.BpbState;
-  __writegsbyte(0x852u, v15);
+  LOBYTE(ActiveProcessorCount) = KeGetPcr()->Prcb.BpbState;
+  __writegsbyte(0x852u, ActiveProcessorCount);
   v16 = KeGetPcr()->Prcb.BpbKernelSpecCtrl;
   if ( KeGetPcr()->Prcb.BpbCurrentSpecCtrl != v16 )
   {
     __writegsbyte(0x27Au, v16);
-    v15 = 0x48i64;
+    ActiveProcessorCount = 0x48i64;
     HIDWORD(a2) = 0;
     __writemsr(0x48u, v16);
   }
@@ -118,7 +118,7 @@ __int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4
   if ( (a2 & 8) != 0 )
   {
     a2 = 0i64;
-    v15 = 0x49i64;
+    ActiveProcessorCount = 0x49i64;
     __writemsr(0x49u, 1ui64);
   }
   else
@@ -270,7 +270,7 @@ LABEL_94:
   v68 = a3;
   v69 = a4;
   if ( !_ZF )
-    KiSaveDebugRegisterState(v15, a2);
+    KiSaveDebugRegisterState(ActiveProcessorCount, a2);
   if ( (v17->Header.Reserved1 & 0x24) == 0 )
     goto LABEL_24;
   v71 = v7;
