@@ -1,4 +1,4 @@
-__int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4, char a5)
+__int64 __fastcall KiSystemCall64(__int64 a1, __int64 value_1, __int64 a3, __int64 a4, char a5)
 {
   __int64 v5; // rax
   __int64 v6; // rbp
@@ -11,9 +11,8 @@ __int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4
   __int128 v13; // xmm4
   __int128 v14; // xmm5
   unsigned __int64 ActiveProcessorCount; // rcx
-  unsigned __int8 v16; // al
-  struct _KTHREAD *v17; // rbx
-  bool _ZF; // zf
+  unsigned __int8 BpbKernelSpecCtrl; // al
+  struct _KTHREAD *CurrentThread; // rbx
   char v19; // al
   bool v20; // cc
   __int64 result; // rax
@@ -24,19 +23,18 @@ __int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4
   __int64 v26; // rdx
   __int64 v27; // rdi
   __int64 v28; // rax
-  __int128 *v29; // r10
-  __int128 *v30; // r11
+  __int128 *KeServiceDescriptorTablePointer; // r10
+  __int128 *KeServiceDescriptorTableShadowPointer; // r11
   __int64 v31; // r10
   __int64 v32; // rax
-  __int64 (__fastcall *v33)(_QWORD, _QWORD); // r10
+  __int64 (__fastcall *v33)(_QWORD, _QWORD, _QWORD, _QWORD); // r10
   __int64 v34; // rbx
   __int64 v35; // rdi
-  __int64 (__fastcall *v36)(_QWORD, _QWORD); // rsi
+  __int64 (__fastcall *v36)(_QWORD, _QWORD, _QWORD, _QWORD); // rsi
   struct _KTHREAD *v38; // r11
   struct _KTHREAD *v39; // rcx
   void *v40; // rax
   unsigned __int8 v41; // al
-  char _CF; // cf
   struct _KTHREAD *v45; // rcx
   unsigned __int8 v46; // al
   __int64 v47; // rsi
@@ -91,7 +89,7 @@ __int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4
   v91 = 0x2Bi64;
   StackLimit = KeGetPcr()->NtTib.StackLimit;    // PCR -> offset 0x0 => NtTib + offset 10 => StackLimit 
   v89 = v8;
-  value = 51i64;
+  value = 0x33i64;
   v87 = a1;
   v86 = v6;
   if ( (_BYTE)KeSmapEnabled && (value & 1) != 0 )// Check If SMAP (Supervisor Mode Access Prevention) Is Enabled 
@@ -100,30 +98,30 @@ __int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4
                                                 // 
   v65 = v5;
   v66 = v7;
-  v67 = a2;
+  v67 = value_1;
   ActiveProcessorCount = *(_QWORD *)&KeGetCurrentThread()->Process[2].ActiveProcessors.Count;
   __writegsqword(0x270u, ActiveProcessorCount);
   __writegsbyte(0x851u, KeGetPcr()->Prcb.BpbRetpolineExitSpecCtrl);
   LOBYTE(ActiveProcessorCount) = KeGetPcr()->Prcb.BpbState;
   __writegsbyte(0x852u, ActiveProcessorCount);
-  v16 = KeGetPcr()->Prcb.BpbKernelSpecCtrl;
-  if ( KeGetPcr()->Prcb.BpbCurrentSpecCtrl != v16 )
+  BpbKernelSpecCtrl = KeGetPcr()->Prcb.BpbKernelSpecCtrl;
+  if ( KeGetPcr()->Prcb.BpbCurrentSpecCtrl != BpbKernelSpecCtrl )
   {
-    __writegsbyte(0x27Au, v16);
+    __writegsbyte(0x27Au, BpbKernelSpecCtrl);
     ActiveProcessorCount = 0x48i64;
-    HIDWORD(a2) = 0;
-    __writemsr(0x48u, v16);
+    HIDWORD(value_1) = 0;
+    __writemsr(0x48u, BpbKernelSpecCtrl);
   }
-  LODWORD(a2) = KeGetPcr()->Prcb.BpbState;
-  if ( (a2 & 8) != 0 )
+  LODWORD(value_1) = KeGetPcr()->Prcb.BpbState;
+  if ( (value_1 & 8) != 0 )
   {
-    a2 = 0i64;
+    value_1 = 0i64;
     ActiveProcessorCount = 0x49i64;
     __writemsr(0x49u, 1ui64);
   }
   else
   {
-    if ( (a2 & 2) != 0 && (KeGetPcr()->Prcb.BpbFeatures & 4) == 0 )
+    if ( (value_1 & 2) != 0 && (KeGetPcr()->Prcb.BpbFeatures & 4) == 0 )
     {
       v58 = 0x1404070D9i64;
       v83 = 0x1404071F0i64;
@@ -162,11 +160,11 @@ __int64 __fastcall KiSystemCall64(__int64 a1, __int64 a2, __int64 a3, __int64 a4
   }
   __writegsbyte(0x853u, 0);
   BYTE3(v64) = 2;
-  v17 = KeGetCurrentThread();
-  _m_prefetchw(&v17->TrapFrame);
+  CurrentThread = KeGetCurrentThread();
+  _m_prefetchw(&CurrentThread->TrapFrame);
   HIDWORD(v64) = _mm_getcsr();
   _mm_setcsr(KeGetPcr()->Prcb.MxCsr);
-  _ZF = v17->Header.Reserved1 == 0;
+  _ZF = CurrentThread->Header.Reserved1 == 0;
   LOWORD(v84) = 0;
   if ( _ZF )
   {
@@ -175,27 +173,27 @@ LABEL_29:
     v25 = v66;
     v26 = v67;
     _enable();
-    v17->FirstArgument = (void *)v25;
-    v17->SystemCallNumber = v24;
-    v17->TrapFrame = (_KTRAP_FRAME *)&v59;
+    CurrentThread->FirstArgument = (void *)v25;
+    CurrentThread->SystemCallNumber = v24;
+    CurrentThread->TrapFrame = (_KTRAP_FRAME *)&v59;
     v27 = (v24 >> 7) & 0x20;
     v28 = v24 & 0xFFF;
     do
     {
-      v29 = &KeServiceDescriptorTable;
-      v30 = &KeServiceDescriptorTableShadow;
-      if ( (*((_DWORD *)&v17->0 + 1) & 0x80) != 0 )
+      KeServiceDescriptorTablePointer = &KeServiceDescriptorTable;
+      KeServiceDescriptorTableShadowPointer = &KeServiceDescriptorTableShadow;
+      if ( (*((_DWORD *)&CurrentThread->0 + 1) & 0x80) != 0 )
       {
-        if ( (*((_DWORD *)&v17->0 + 1) & 0x200000) != 0 )
-          v30 = &KeServiceDescriptorTableFilter;
-        v29 = v30;
+        if ( (*((_DWORD *)&CurrentThread->0 + 1) & 0x200000) != 0 )
+          KeServiceDescriptorTableShadowPointer = &KeServiceDescriptorTableFilter;
+        KeServiceDescriptorTablePointer = KeServiceDescriptorTableShadowPointer;
       }
-      if ( (unsigned int)v28 < *(_DWORD *)((char *)v29 + v27 + 0x10) )
+      if ( (unsigned int)v28 < *(_DWORD *)((char *)KeServiceDescriptorTablePointer + v27 + 0x10) )
       {
-        v31 = *(_QWORD *)((char *)v29 + v27);
+        v31 = *(_QWORD *)((char *)KeServiceDescriptorTablePointer + v27);
         v32 = *(int *)(v31 + 4 * v28);
-        v33 = (__int64 (__fastcall *)(_QWORD, _QWORD))((v32 >> 4) + v31);
-        if ( (_DWORD)v27 == 0x20 && *((_DWORD *)v17->Teb + 0x5D0) )
+        v33 = (__int64 (__fastcall *)(_QWORD, _QWORD, _QWORD, _QWORD))((v32 >> 4) + v31);
+        if ( (_DWORD)v27 == 0x20 && *((_DWORD *)CurrentThread->Teb + 0x5D0) )
         {
           v65 = v32;
           v66 = v25;
@@ -219,7 +217,7 @@ LABEL_29:
           v54 = v26;
           v55 = a3;
           v56 = a4;
-          v57 = (__int64 (__fastcall *)(__int64, __int64, __int64, __int64))v33;
+          v57 = v33;
           v65 = KiTrackSystemCallEntry(v33, &v53, 4i64, &v63);
           v51 = v57(v53, v54, v55, v56);
           result = KiTrackSystemCallExit(v65, v51);
@@ -230,14 +228,14 @@ LABEL_29:
           v54 = v26;
           v55 = a3;
           v56 = a4;
-          v57 = (__int64 (__fastcall *)(__int64, __int64, __int64, __int64))v33;
+          v57 = v33;
           PerfInfoLogSysCallEntry(v33);
           v52 = v57(v53, v54, v55, v56);
           result = PerfInfoLogSysCallExit(v52);
         }
         else
         {
-          result = v33(v25, v26);
+          result = v33(v25, v26, a3, a4);
         }
         __incgsdword(0x2EB8u);
         goto KiSystemServiceExit;
@@ -251,7 +249,7 @@ LABEL_29:
       v26 = v61;
       a3 = v62;
       a4 = v63;
-      v17->TrapFrame = (_KTRAP_FRAME *)&v59;
+      CurrentThread->TrapFrame = (_KTRAP_FRAME *)&v59;
     }
     while ( _ZF );
     v47 = *((unsigned int *)&xmmword_140CFCA60 + 4);
@@ -266,12 +264,12 @@ LABEL_94:
     }
     goto KiSystemServiceExit;
   }
-  _ZF = (v17->Header.Reserved1 & 3) == 0;
+  _ZF = (CurrentThread->Header.Reserved1 & 3) == 0;
   v68 = a3;
   v69 = a4;
   if ( !_ZF )
-    KiSaveDebugRegisterState(ActiveProcessorCount, a2);
-  if ( (v17->Header.Reserved1 & 0x24) == 0 )
+    KiSaveDebugRegisterState(ActiveProcessorCount, value_1);
+  if ( (CurrentThread->Header.Reserved1 & 0x24) == 0 )
     goto LABEL_24;
   v71 = v7;
   v70 = v7;
@@ -282,27 +280,27 @@ LABEL_94:
   v77 = v13;
   v78 = v14;
   _enable();
-  v19 = PsAltSystemCallDispatch(&v59, a2);
+  v19 = PsAltSystemCallDispatch(&v59, value_1);
   v20 = v19 < 1;
   if ( v19 == 1 )
   {
 LABEL_24:
-    if ( (v17->Header.Reserved1 & 0x80u) == 0 )
+    if ( (CurrentThread->Header.Reserved1 & 0x80u) == 0 )
       goto LABEL_26;
     v22 = __readmsr(0xC0000102);
     if ( v22 >= MmUserProbeAddress )
       v22 = MmUserProbeAddress;
-    if ( v17->Teb == (void *)v22 )
+    if ( CurrentThread->Teb == (void *)v22 )
     {
 LABEL_26:
-      if ( (v17->Header.Reserved1 & 0x40) != 0 )
-        v17->MiscFlags |= 0x10000u;
+      if ( (CurrentThread->Header.Reserved1 & 0x40) != 0 )
+        CurrentThread->MiscFlags |= 0x10000u;
     }
     else
     {
-      v23 = v17->WaitBlock[3].Object;
-      v17->MiscFlags |= 0x100u;
-      --v17->SpecialApcDisable;
+      v23 = CurrentThread->WaitBlock[3].Object;
+      CurrentThread->MiscFlags |= 0x100u;
+      --CurrentThread->SpecialApcDisable;
       v23[0x10] = v22;
       _enable();
       KiUmsCallEntry(0xC0000102i64);
@@ -317,7 +315,7 @@ LABEL_26:
     KiExceptionDispatch(0xC000001Ci64, 0i64, v87);
     __debugbreak();
   }
-  if ( (v17->Header.Reserved1 & 4) != 0 )
+  if ( (CurrentThread->Header.Reserved1 & 4) != 0 )
   {
     v38 = KeGetCurrentThread();
     if ( !(v38->WaitBlock[3].SpareLong | (unsigned __int8)(v38->ApcStateIndex | KeGetCurrentIrql())) )
@@ -451,7 +449,7 @@ KiSystemServiceExit:
   if ( (_WORD)v84 )
   {
     v65 = result;
-    ((void (*)(void))KiRestoreDebugRegisterState)();
+    KiRestoreDebugRegisterState(v39);
     v40 = KeGetCurrentThread()->ApcState.Process->InstrumentationCallback;
     if ( v40 && (_WORD)value == 0x33 )
       v87 = (__int64)v40;
