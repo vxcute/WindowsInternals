@@ -1,24 +1,24 @@
 __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAddress, size_t Buffer, size_t BufferSize, __int64 NumberOfBytesToReaden, ACCESS_MASK DesiredAccess)
 {
-    int BaseAddr; // er13
-    __int64 value; // rsi
-    struct _KTHREAD* CurrentThread; // r14
-    KPROCESSOR_MODE PreviousMode; // al
-    UINT64 * NumberOfBytesReaden_x; // rbx
-    __int64 BytesReaden; // rcx
-    NTSTATUS ObjectRef; // edi
-    struct KPROCESS* Process; // r10
-    PVOID Obj; // r14
-    int TargetAddress; // er9
-    int TargetProcess; // er8
-    int SourceAddress; // edx
-    int SourceProcess; // ecx
-    NTSTATUS MmCopy; // eax
-    int v22; // er10
-    char PreviousMode_x; // [rsp+40h] [rbp-48h]
-    __int64 ReturnSize; // [rsp+48h] [rbp-40h] BYREF
-    PVOID Object[2]; // [rsp+50h] [rbp-38h] BYREF
-    int Buf; // [rsp+A0h] [rbp+18h]
+    int BaseAddr; 
+    __int64 value; 
+    struct _KTHREAD* CurrentThread; 
+    KPROCESSOR_MODE PreviousMode; 
+    UINT64 * NumberOfBytesReaden_x; 
+    __int64 BytesReaden; 
+    NTSTATUS ObjectRef; 
+    struct KPROCESS* Process; 
+    PVOID Obj; 
+    int TargetAddress; 
+    int TargetProcess; 
+    int SourceAddress; 
+    int SourceProcess; 
+    NTSTATUS MmCopy; 
+    int v22; 
+    char PreviousMode_x; 
+    __int64 ReturnSize; 
+    PVOID Object[2];
+    int Buf; 
 
     Buf = Buffer;
     BaseAddr = BaseAddress;
