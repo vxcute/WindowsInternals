@@ -1,15 +1,15 @@
 __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsigned int Remove)
 {
-  __int64 remove; // rbx
-  unsigned int IsExRoutine; // esi
-  int LdrDataTableEntryFlags; // edx
-  void *CallBackPtr; // rdi
-  __int64 Index; // rbx
-  struct _KTHREAD *CurrentThread; // rbp
-  __int64 Idx; // r15
-  struct _EX_RUNDOWN_REF *CallBack; // rax
-  struct _EX_RUNDOWN_REF *Mem; // rdi
-  volatile signed __int32 *PspNotifyRoutinePtr; // rax
+  __int64 remove; 
+  unsigned int IsExRoutine;
+  int LdrDataTableEntryFlags; 
+  void *CallBackPtr; 
+  __int64 Index; 
+  struct _KTHREAD *CurrentThread;
+  __int64 Idx;
+  struct _EX_RUNDOWN_REF *CallBack; 
+  struct _EX_RUNDOWN_REF *Mem; 
+  volatile signed __int32 *PspNotifyRoutinePtr; 
 
   remove = Remove;
   IsExRoutine = Remove & 2;                     // Checks If Bit 1 Is Set This will be true if the caller called PsSetCreateProcessNotifyRoutineEx or PsSetCreateProcessNotifyRoutineEx2
