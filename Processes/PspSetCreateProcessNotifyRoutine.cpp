@@ -13,25 +13,25 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
 
   remove = Remove;
   IsExRoutine = Remove & 2;                     // Checks If Bit 1 Is Set This will be true if the caller called PsSetCreateProcessNotifyRoutineEx or PsSetCreateProcessNotifyRoutineEx2
-  if ( (Remove & 1) != 0 )                      // Bit Zero will be set to 1 if remove == true 
+  if ( (Remove & 1) != 0 )                      // Bit Zero will be set to 1 if remove == true if so start removing the callback for system notify routines table 
   {
-    CurrentThread = KeGetCurrentThread();
-    --CurrentThread->KernelApcDisable;
-    Idx = 0i64;
+    CurrentThread = KeGetCurrentThread();     // optain pointer to KTHREAD
+    --CurrentThread->KernelApcDisable;      // Disable APC Set Decremeanting means Setting It From 1 to 0 
+    Idx = 0i64;            
     while ( 1 )
     {
-      CallBack = ExReferenceCallBackBlock((signed __int64 *)&PspCreateProcessNotifyRoutine.Ptr + Idx);
+      CallBack = ExReferenceCallBackBlock((signed __int64 *)&PspCreateProcessNotifyRoutine.Ptr + Idx);   // Checks If Same Routines 
       Mem = CallBack;
-      if ( CallBack )
+      if ( CallBack ) 
       {
-        LODWORD(remove) = remove & 0xFFFFFFFE;
+        LODWORD(remove) = remove & 0xFFFFFFFE;   
         if ( CallBack[1].Count == NotifyRoutine
           && LODWORD(CallBack[2].Count) == (_DWORD)remove
-          && (unsigned __int8)ExCompareExchangeCallBack(&PspCreateProcessNotifyRoutine + Idx, 0i64, CallBack) )
+          && (unsigned __int8)ExCompareExchangeCallBack(&PspCreateProcessNotifyRoutine + Idx, 0i64, CallBack) )     // Does It Have The Same Type 
         {
-          PspNotifyRoutinePtr = &PspCreateProcessNotifyRoutineCount;
-          if ( IsExRoutine )
-            PspNotifyRoutinePtr = &PspCreateProcessNotifyRoutineExCount;
+          PspNotifyRoutinePtr = &PspCreateProcessNotifyRoutineCount;      
+          if ( IsExRoutine )      // Checks If The Caller Called PsSetCreateProcessNotifyRoutineEx or PsSetCreateProcessNotifyRoutineEx2
+            PspNotifyRoutinePtr = &PspCreateProcessNotifyRoutineExCount;      // if set the PspNotifyRoutinePtr To The Address of PspCreateProcessNotifyRoutineExCount
           _InterlockedDecrement(PspNotifyRoutinePtr);
           ExDereferenceCallBackBlock(&PspCreateProcessNotifyRoutine + Idx, Mem);
           KeLeaveCriticalRegionThread(CurrentThread);
