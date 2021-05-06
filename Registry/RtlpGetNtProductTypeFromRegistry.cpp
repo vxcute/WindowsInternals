@@ -1,3 +1,5 @@
+// Queries Windows NT Type Checks If It WinNT, ServerNT or LanmanNT
+
 __int64 __fastcall RtlpGetNtProductTypeFromRegistry(DWORD *NT_Type)
 {
   NTSTATUS RegStatus; 
