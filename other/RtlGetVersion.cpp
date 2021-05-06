@@ -1,3 +1,5 @@
+// Gets OS Version 
+
 NTSTATUS NTAPI RtlGetVersion(PRTL_OSVERSIONINFOW lpVersionInformation)
 {
   ULONG dwOSVersionInfoSize;
