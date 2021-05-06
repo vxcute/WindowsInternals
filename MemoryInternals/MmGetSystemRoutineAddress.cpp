@@ -10,10 +10,12 @@ PVOID NTAPI MmGetSystemRoutineAddressx(PUNICODE_STRING SystemRoutineName)
 
 	for (SourceString = SystemRoutineName; RtlUnicodeStringToAnsiString(&DestinationString, SourceString, 1) < 0; SourceString = FunctionName) 
 		KeDelayExecutionThread(0, 0, (PLARGE_INTEGER)&MiShortTime);
-	SystemRoutineAddress = (PVOID)RtlFindExportedRoutineByName((INT64)PsNtosImageBase, DestinationString.Buffer);	// Finds The Function By Address Through Walking The PE Export Table Passing ntoskrnl.exe base address
+	// Finds The Function By Address Through Walking The PE Export Table Passing ntoskrnl.exe base address
+	SystemRoutineAddress = (PVOID)RtlFindExportedRoutineByName((INT64)PsNtosImageBase, DestinationString.Buffer);	
 	
 	if (SystemRoutineAddress == nullptr) 
-		SystemRoutineAddress = (PVOID)RtlFindExportedRoutineByName(PsHalImageBase, DestinationString.Buffer);	// If It Still a null pointer call the same function but passing Hal (Hardware Abstraction Layer) Base Address Not All Functions will be in ntoskrnl.exe
+		// If It Still a null pointer call the same function but passing Hal (Hardware Abstraction Layer) Base Address Not All Functions will be in ntoskrnl.exe
+		SystemRoutineAddress = (PVOID)RtlFindExportedRoutineByName(PsHalImageBase, DestinationString.Buffer);	
 	RtlFreeAnsiString((PANSI_STRING)&DestinationString);
 
 	if (SystemRoutineAddress && (int)MiMarkKernelCfgTarget(SystemRoutineAddress) < 0)
