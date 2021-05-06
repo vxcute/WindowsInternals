@@ -13,13 +13,13 @@ __int64 __fastcall RtlpGetNtProductTypeFromRegistry(DWORD *NT_Type)
   UNICODE_STRING ServerNT; 
   OBJECT_ATTRIBUTES ObjectAttributes; 
   PVOID KeyValueInformation; 
-  __int64 v14; 
+  __int64 MaximumLength; 
 
   *(&ObjectAttributes.Length + 1) = 0;
   *(&ObjectAttributes.Attributes + 1) = 0;
   ResultLength = 0;
   *(_DWORD *)(&FinalNtType.MaximumLength + 1) = 0;
-  KeyHandle = 0i64;
+  KeyHandle = 0;
   ObjectAttributes.RootDirectory = 0i64;
   RegPath[1] = (__int64)L"\\Registry\\Machine\\System\\CurrentControlSet\\Control\\ProductOptions";// Registry Path Contains The Windows NT Type In ProductType Field
   ValueName.Buffer = L"ProductType";
@@ -28,13 +28,13 @@ __int64 __fastcall RtlpGetNtProductTypeFromRegistry(DWORD *NT_Type)
   WinNT.Buffer = L"WinNt";
   ObjectAttributes.ObjectName = (_UNICODE_STRING *)RegPath;
   RegPath[0] = 0x840082i64;
-  *(_QWORD *)&ValueName.Length = 0x180016i64;
-  *(_QWORD *)&LanmanNT.Length = 0x120010i64;
-  *(_QWORD *)&ServerNT.Length = 0x120010i64;
-  *(_QWORD *)&WinNT.Length = 0xC000Ai64;
+  *(UINT64*)&ValueName.Length = 0x180016i64;
+  *(UINT64*)&LanmanNT.Length = 0x120010i64;
+  *(UINT64*)&ServerNT.Length = 0x120010i64;
+  *(UINT64*)&WinNT.Length = 0xC000Ai64;
   ObjectAttributes.Length = 0x30;
   ObjectAttributes.Attributes = 0x240;
-  *(_OWORD *)&ObjectAttributes.SecurityDescriptor = 0i64;
+  *(UINT64*)&ObjectAttributes.SecurityDescriptor = 0;
   RegStatus = ZwOpenKey(&KeyHandle, 1u, &ObjectAttributes);
   if ( RegStatus >= 0 )
   {
@@ -47,11 +47,11 @@ __int64 __fastcall RtlpGetNtProductTypeFromRegistry(DWORD *NT_Type)
                   &ResultLength);
     if ( RegStatus >= 0 )
     {
-      if ( HIDWORD(KeyValueInformation) == 1 && (unsigned int)v14 >= 2 )
+      if ( HIDWORD(KeyValueInformation) == 1 && (unsigned int)MaximumLength >= 2 )
       {
-        FinalNtType.MaximumLength = v14;
+        FinalNtType.MaximumLength = MaximumLength;
         FinalNtType.Buffer = (wchar_t *)&v14 + 2;
-        FinalNtType.Length = v14 - 2;
+        FinalNtType.Length = MaximumLength - 2;
         if ( RtlEqualUnicodeString(&FinalNtType, &WinNT, 1u) )
         {
           *NT_Type = 1;                         // WinNT
