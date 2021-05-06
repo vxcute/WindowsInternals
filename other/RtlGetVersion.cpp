@@ -6,7 +6,7 @@ NTSTATUS NTAPI RtlGetVersion(PRTL_OSVERSIONINFOW lpVersionInformation)
   __int16 Mask; 
   int NT_Type; 
 
-  *(__int64*)&lpVersionInformation->dwMajorVersion = 0xA;
+  *(UINT16*)&lpVersionInformation->dwMajorVersion = 0xA;
   lpVersionInformation->dwBuildNumber = (unsigned __int16)NtBuildNumber;// Moves NtBuildNumber Which Is A Build Hardcoded In The Binary It Self To dwBuildNumber
   dwOSVersionInfoSize = lpVersionInformation->dwOSVersionInfoSize - 0x11C;    // Gets The Info OS Info Size and Subtracts 0x11C From It 
   NT_Type = 0;        // used to store the nt type (WinNT, LanmanNT, ServerNT) returned by RtlGetNtProductType
