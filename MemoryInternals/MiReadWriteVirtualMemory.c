@@ -22,8 +22,8 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
 
     Buf = Buffer;
     BaseAddr = BaseAddress;
-    value = 0i64;
-    Object[0] = 0i64;
+    value = 0;
+    Object[0] = 0;
     CurrentThread = KeGetCurrentThread();         // Get Current Thread Information of Thread Is Stored In KTHREAD Structure Since KeGetCurrentThread Returns KTHREAD  
     PreviousMode = CurrentThread->PreviousMode;   // Store PreviousMode of Thread In a Temp Variable 
     PreviousMode_x = PreviousMode;
@@ -40,9 +40,9 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
         if (NumberOfBytesToReaden)                // If Number Of Bytes To Read Is Bigger Than Zero 
         {
             BytesReaden = NumberOfBytesToReaden;
-            if ((unsigned __int64)NumberOfBytesToReaden >= 0x7FFFFFFF0000i64)
-                BytesReaden = 0x7FFFFFFF0000i64;
-            *(UINT64*)BytesReaden = *(UINT64 *)BytesReaden;
+            if ((unsigned __int64)NumberOfBytesToReaden >= 0x7FFFFFFF0000)
+                BytesReaden = 0x7FFFFFFF0000;
+            *(UINT64*)BytesReaden = *(UINT64*)BytesReaden;
         }
     }
     else
@@ -60,7 +60,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
             PreviousMode,
             0x6D566D4Du,
             Object,
-            0i64);
+            0);
         if (ObjectRef >= 0)
         {
             Process = CurrentThread->ApcState.Process;
@@ -99,10 +99,10 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
             }
 
             // Check If Process Logging Is Enabled
-            // If Log The Read or Write To The Process 
+            // If Log The Read or Write To The Process to etw (Event Log) 
 
             if ((unsigned int)((__int64(__fastcall*)(PVOID, UINT64))PsIsProcessLoggingEnabled)(Obj, DesiredAccess)) 
-                EtwTiLogReadWriteVm(ObjectRef, v22, (unsigned int)Obj, DesiredAccess, BaseAddr, value);
+                EtwTiLogReadWriteVm(ObjectRef, v22, (unsigned int)Obj, DesiredAccess, BaseAddr, value);        
             ObfDereferenceObjectWithTag(Obj, 0x6D566D4Du);// Decrements The Reference Count To The Object (Process)  
         }
     }
