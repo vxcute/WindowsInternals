@@ -65,7 +65,7 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
     if ( (unsigned int)Index >= 0x40 )
     {
       ExFreePoolWithTag(CallBackPtr, 0);
-      return 0xC000000Di64;
+      return 0xC000000D;
     }
   }
   if ( IsExRoutine )
