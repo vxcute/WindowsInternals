@@ -1,4 +1,4 @@
-typedef struct _DMA_ADAPTER {
+struct _DMA_ADAPTER {
   USHORT          Version;
   USHORT          Size;
   PDMA_OPERATIONS DmaOperations;
@@ -9,7 +9,7 @@ UINT MiIsUserQueryVmCallerTrusted(PACCESS_TOKEN ProcessToken)
     UINT IsTrusted {};
     PSECURITY_IMPERSONATION_LEVEL  ImpersonationLevel{};
     PTOKEN_TYPE TokenType; 
-    struct _DMA_ADAPTER *TokenReference; 
+    _DMA_ADAPTER *TokenReference; 
     PBOOLEAN EffectiveOnly
     
     // Returns A Token Refernece To Be Used By HalPutDmaAdapter
