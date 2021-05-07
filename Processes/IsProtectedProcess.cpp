@@ -1,6 +1,6 @@
 /* 
   Checks If Process Is Protected 
-  Fun Fact Protected Process If Terminated You BSOD With StopCode Critical_Process_Died 
+  Fun Fact Protected Process If Terminated You BSOD With StopCode CRITICAL_PROCESS_DIED 
 */
 
 bool __fastcall PsIsProtectedProcess(_EPROCESS* eproc)
