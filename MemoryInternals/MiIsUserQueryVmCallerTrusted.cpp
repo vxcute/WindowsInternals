@@ -13,7 +13,7 @@ UINT MiIsUserQueryVmCallerTrusted(PACCESS_TOKEN ProcessToken)
     PBOOLEAN EffectiveOnly
     
     // Returns A Pointer To The Effective Token of A Thread 
-    TokenReference = (_DMA_ADAPTER*)PsReferenceEffectiveToken(ProcessToken, &TokenType, &EffectiveOnly, &ImpersonationLevel, 0);
+    TokenReference = (PDMA_ADAPTER)PsReferenceEffectiveToken(ProcessToken, &TokenType, &EffectiveOnly, &ImpersonationLevel, 0);
 
     // SeTokenAdmin: Checks If Token Is Admin 
     // SeSinglePrivilegeCheck: The SeSinglePrivilegeCheck routine checks for the passed privilege value in the context of the current thread 
