@@ -8,9 +8,9 @@ UINT MiIsUserQueryVmCallerTrusted(PACCESS_TOKEN ProcessToken)
 {
     UINT IsTrusted {};
     PSECURITY_IMPERSONATION_LEVEL  ImpersonationLevel{};
-    PTOKEN_TYPE TokenType; 
-    _DMA_ADAPTER *TokenReference; 
-    PBOOLEAN EffectiveOnly
+    PTOKEN_TYPE TokenType{}; 
+    PDMA_ADAPTER TokenReference{}; 
+    PBOOLEAN EffectiveOnly{}; 
     
     // Returns A Pointer To The Effective Token of A Thread 
     TokenReference = (PDMA_ADAPTER)PsReferenceEffectiveToken(ProcessToken, &TokenType, &EffectiveOnly, &ImpersonationLevel, 0);
