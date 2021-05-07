@@ -26,7 +26,7 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
       {
         LODWORD(remove) = remove & 0xFFFFFFFE;   
         if ( CallBack[1].Count == NotifyRoutine
-          && LODWORD(CallBack[2].Count) == (_DWORD)remove
+          && LODWORD(CallBack[2].Count) == (DWORD)remove
           && (unsigned __int8)ExCompareExchangeCallBack(&PspCreateProcessNotifyRoutine + Idx, 0i64, CallBack) )     // Does It Have The Same Type 
         {
           PspNotifyRoutinePtr = &PspCreateProcessNotifyRoutineCount;      
@@ -37,7 +37,7 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
           KeLeaveCriticalRegionThread(CurrentThread);
           ExWaitForRundownProtectionRelease(Mem);
           ExFreePoolWithTag(Mem, 0);
-          return 0i64;
+          return 0;
         }
         ExDereferenceCallBackBlock(&PspCreateProcessNotifyRoutine + Idx, Mem);
       }
@@ -58,7 +58,7 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
   CallBackPtr = (void *)ExAllocateCallBack(NotifyRoutine, remove);
   if ( !CallBackPtr )
     return 0xC000009Ai64;
-  Index = 0i64;
+  Index = 0;
   while ( !(unsigned __int8)ExCompareExchangeCallBack(&PspCreateProcessNotifyRoutine + Index, CallBackPtr, 0i64) )
   {
     Index = (unsigned int)(Index + 1);
