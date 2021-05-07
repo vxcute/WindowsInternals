@@ -5,10 +5,10 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
   int LdrDataTableEntryFlags; 
   void *CallBackPtr; 
   __int64 Index; 
-  struct _KTHREAD *CurrentThread;
+   _KTHREAD *CurrentThread;
   __int64 Idx;
-  struct _EX_RUNDOWN_REF *CallBack; 
-  struct _EX_RUNDOWN_REF *Mem; 
+   _EX_RUNDOWN_REF *CallBack; 
+   _EX_RUNDOWN_REF *Mem; 
   volatile signed __int32 *PspNotifyRoutinePtr; 
 
   remove = Remove;
