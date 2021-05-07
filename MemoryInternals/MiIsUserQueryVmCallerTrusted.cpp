@@ -12,8 +12,6 @@ UINT MiIsUserQueryVmCallerTrusted(PACCESS_TOKEN ProcessToken)
     _DMA_ADAPTER *TokenReference; 
     PBOOLEAN EffectiveOnly
     
-    // Returns A Token Refernece To Be Used By HalPutDmaAdapter
-
     // Returns A Pointer To The Effective Token of A Thread 
     TokenReference = (_DMA_ADAPTER*)PsReferenceEffectiveToken(ProcessToken, &TokenType, &EffectiveOnly, &ImpersonationLevel, 0);
 
