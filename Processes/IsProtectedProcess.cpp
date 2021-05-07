@@ -6,7 +6,7 @@ bool __fastcall PsIsProtectedProcess(_EPROCESS* eproc)
     IDA:
           test    byte ptr [rcx+87Ah], 7      ; rcx = _EPROCESS 
           mov     eax, 0
-          setnbe  al
+          setnbe  al      ; Set byte to 1 if not below zero or equal to zero if the byte is set the result is true the process is protected ! 
           retn
   */ 
 }
