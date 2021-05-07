@@ -1,6 +1,5 @@
 /* 
   Checks If Process Is Protected 
-  Fun Fact Protected Process If Terminated You BSOD With StopCode CRITICAL_PROCESS_DIED (0x000000EF)
 */
 
 bool __fastcall PsIsProtectedProcess(_EPROCESS* eproc)
