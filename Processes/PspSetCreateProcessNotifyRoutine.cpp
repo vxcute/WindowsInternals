@@ -17,8 +17,8 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
   {
     CurrentThread = KeGetCurrentThread();     // optain pointer to KTHREAD
     --CurrentThread->KernelApcDisable;      // Disable APC Set Decremeanting means Setting It From 1 to 0 
-    Idx = 0i64;            
-    while ( 1 )
+    Idx = 0;            
+    while ( true )
     {
       CallBack = ExReferenceCallBackBlock((signed __int64 *)&PspCreateProcessNotifyRoutine.Ptr + Idx);   // Checks If Same Routines 
       Mem = CallBack;
@@ -27,7 +27,7 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
         LODWORD(remove) = remove & 0xFFFFFFFE;   
         if ( CallBack[1].Count == NotifyRoutine
           && LODWORD(CallBack[2].Count) == (DWORD)remove
-          && (unsigned __int8)ExCompareExchangeCallBack(&PspCreateProcessNotifyRoutine + Idx, 0i64, CallBack) )     // Does It Have The Same Type 
+          && (UINT8)ExCompareExchangeCallBack(&PspCreateProcessNotifyRoutine + Idx, 0i64, CallBack) )     // Does It Have The Same Type 
         {
           PspNotifyRoutinePtr = &PspCreateProcessNotifyRoutineCount;      
           if ( IsExRoutine )      // Checks If The Caller Called PsSetCreateProcessNotifyRoutineEx or PsSetCreateProcessNotifyRoutineEx2
@@ -41,8 +41,8 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
         }
         ExDereferenceCallBackBlock(&PspCreateProcessNotifyRoutine + Idx, Mem);
       }
-      Idx = (unsigned int)(Idx + 1);
-      if ( (unsigned int)Idx >= 0x40 )
+      Idx = (UINT)(Idx + 1);
+      if ( (UINT)Idx >= 0x40 )
       {
         KeLeaveCriticalRegionThread(CurrentThread);
         return 0xC000007Ai64;
@@ -53,16 +53,16 @@ __int64 __fastcall PspSetCreateProcessNotifyRoutine(__int64 NotifyRoutine, unsig
     LdrDataTableEntryFlags = 0x20;
   else
     LdrDataTableEntryFlags = 0;
-  if ( !(unsigned int)MmVerifyCallbackFunctionCheckFlags(NotifyRoutine, LdrDataTableEntryFlags) )
-    return 0xC0000022i64;
+  if ( !(UINT)MmVerifyCallbackFunctionCheckFlags(NotifyRoutine, LdrDataTableEntryFlags) )
+    return 0xC0000022;
   CallBackPtr = (void *)ExAllocateCallBack(NotifyRoutine, remove);
   if ( !CallBackPtr )
-    return 0xC000009Ai64;
+    return 0xC000009A;
   Index = 0;
-  while ( !(unsigned __int8)ExCompareExchangeCallBack(&PspCreateProcessNotifyRoutine + Index, CallBackPtr, 0i64) )
+  while ( !(UINT8)ExCompareExchangeCallBack(&PspCreateProcessNotifyRoutine + Index, CallBackPtr, 0i64) )
   {
-    Index = (unsigned int)(Index + 1);
-    if ( (unsigned int)Index >= 0x40 )
+    Index = (UINT)(Index + 1);
+    if ( (UINT)Index >= 0x40 )
     {
       ExFreePoolWithTag(CallBackPtr, 0);
       return 0xC000000D;
