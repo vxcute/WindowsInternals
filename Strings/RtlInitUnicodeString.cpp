@@ -10,7 +10,7 @@ void NTAPI RtlInitUnicodeString(PUNICODE_STRING DestinationString, PCWSTR Source
 
 	if (SourceString) {
 		
-		length = strlenW(SourceString)*2; 
+		length = strlenW(SourceString)*sizeof(wchar_t); 
 
 		if (length >= 0xFFE)
 			NewLen = LOWORD(length);
