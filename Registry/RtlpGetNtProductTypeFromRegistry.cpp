@@ -27,11 +27,11 @@ __int64 __fastcall RtlpGetNtProductTypeFromRegistry(DWORD *NT_Type)
   ServerNT.Buffer = L"ServerNt";
   WinNT.Buffer = L"WinNt";
   ObjectAttributes.ObjectName = (_UNICODE_STRING *)RegPath;
-  RegPath[0] = 0x840082i64;
-  *(UINT64*)&ValueName.Length = 0x180016i64;
-  *(UINT64*)&LanmanNT.Length = 0x120010i64;
-  *(UINT64*)&ServerNT.Length = 0x120010i64;
-  *(UINT64*)&WinNT.Length = 0xC000Ai64;
+  RegPath[0] = 0x840082;
+  *(UINT64*)&ValueName.Length = 0x180016;
+  *(UINT64*)&LanmanNT.Length = 0x120010;
+  *(UINT64*)&ServerNT.Length = 0x120010;
+  *(UINT64*)&WinNT.Length = 0xC000A;
   ObjectAttributes.Length = 0x30;
   ObjectAttributes.Attributes = 0x240;
   *(UINT64*)&ObjectAttributes.SecurityDescriptor = 0;
