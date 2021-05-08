@@ -9,13 +9,8 @@ void NTAPI RtlInitUnicodeString(PUNICODE_STRING DestinationString, PCWSTR Source
 	__int64 NewLen = 0;
 
 	if (SourceString) {
-		i = 0xFFFFFFFFFFFFFFFF;
 		
-		do
-			++i;
-		while (SourceString[i]);
-
-		length = i * 2;
+		length = strlenW(SourceString)*2; 
 
 		if (length >= 0xFFE)
 			NewLen = LOWORD(length);
