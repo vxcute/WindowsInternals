@@ -43,12 +43,12 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 	_pPsLookupProcessByProcessId((HANDLE)392, &eproc);
 	_pPsLookupProcessByProcessId((HANDLE)924, &eproc2);
 	PspIsParentProcess(eproc2, eproc) ? DbgPrint("Parent Process ...") : DbgPrint("Not A Parent Process ...");
-	DbgPrint("Parent Process Unique Process ID: %d", eproc->UniqueProcessId);
-	DbgPrint("Parent Process InheritedFromUniqueProcessId %d", eproc->InheritedFromUniqueProcessId);
-	DbgPrint("Parent Process Sequence Number: %d", eproc->SequenceNumber);
-	DbgPrint("Child Process UniqueProcessId: %d", eproc2->UniqueProcessId);
-	DbgPrint("Child Process InheritedFromUniqueProcessId %d", eproc2->InheritedFromUniqueProcessId);
-	DbgPrint("Child Process Sequence Number: %d", eproc2->SequenceNumber);
+	DbgPrint("ProcessA Process Unique Process ID: %d", eproc->UniqueProcessId);
+	DbgPrint("ProcessA Process InheritedFromUniqueProcessId %d", eproc->InheritedFromUniqueProcessId);
+	DbgPrint("ProcessA Process Sequence Number: %d", eproc->SequenceNumber);
+	DbgPrint("ProcessB Process UniqueProcessId: %d", eproc2->UniqueProcessId);
+	DbgPrint("ProcessB Process InheritedFromUniqueProcessId %d", eproc2->InheritedFromUniqueProcessId);
+	DbgPrint("ProcessB Process Sequence Number: %d", eproc2->SequenceNumber);
 	DriverObject->DriverUnload = Unload;
 	return STATUS_SUCCESS;
 }
