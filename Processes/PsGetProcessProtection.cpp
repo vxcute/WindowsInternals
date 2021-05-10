@@ -1,6 +1,6 @@
 // Def: Gets Process Protection  
 // Return Value: Returns PPS_PROTECTION 
-// Status: Unexported
+// Status: Unexported on all systems like windows 7, exported on windows 10
 
 PPS_PROTECTION PsGetProcessProtection(_EPROCESS *eproc)
 {
