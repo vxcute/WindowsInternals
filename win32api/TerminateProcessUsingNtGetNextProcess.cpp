@@ -6,7 +6,6 @@
 
 #pragma comment(lib, "Psapi")
 #pragma comment(lib,"ntdll.lib")
-BOOL TerminateBlacklistedProcess(DWORD dwProcessId, UINT uExitCode);
 
 typedef NTSTATUS(NTAPI* _NtGetNextProcess)(
 	_In_ HANDLE ProcessHandle,
