@@ -1,6 +1,6 @@
 // Gets Base Address of A Process By Reading The SectionBaseAddress In EPROCESS 
 
-void* __fastcall PsGetProcessSectionBaseAddress(_EPROCESS *eproc)
+PVOID NTAPI PsGetProcessSectionBaseAddress(_EPROCESS *eproc)
 {
   return eproc->SectionBaseAddress;   
   
