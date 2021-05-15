@@ -95,7 +95,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
             }
             else
             {
-                ObjectRef = STATUS_ACCESS_VIOLATION; // object is in accessible access violatiy happend
+                ObjectRef = STATUS_ACCESS_VIOLATION; // object is in accessible access violation happend
             }
 
             // Check If Process Logging Is Enabled
