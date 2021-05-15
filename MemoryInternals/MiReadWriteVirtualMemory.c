@@ -34,7 +34,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
             || Buffer + BufferSize < Buffer           // Check If Buffer + BufferSize Less Than Buffer 
             || Buffer + BufferSize > 0x7FFFFFFF0000i64)// Check If Buffer + BufferSize Is Bigger Than User Memory Address Space Limit 
         {
-            return 0xC0000005i64;                     // If The Conditions are met return This Value 
+            return ACCESS_VIOLATION;                     // Either Return ACCESS_VIOLATION 
         }
         NumberOfBytesReaden_x = (UINT64 *)NumberOfBytesToReaden;
         if (NumberOfBytesToReaden)                // If Number Of Bytes To Read Is Bigger Than Zero 
@@ -95,7 +95,7 @@ __int64 __fastcall MiReadWriteVirtualMemory(HANDLE ProcessHandle, size_t BaseAdd
             }
             else
             {
-                ObjectRef = 0xC0000005;
+                ObjectRef = ACCESS_VIOLATION;
             }
 
             // Check If Process Logging Is Enabled
