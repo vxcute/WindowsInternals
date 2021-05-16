@@ -31,7 +31,7 @@ void bsod()
 
 		RtlAdjustPrivilege(SeShutDownPrivilage, true, false, &OldValue);
 
-    // ErrorStatus Can Be Any Value U Don't Have To Put STATUS_ASSERTION_FAILURE
+    // ErrorStatus Can Be Any Value U Don't Have To Put STATUS_ASSERTION_FAILURE it will just be the stop code that appears during the bsod 
     
 		NtRaiseHardError(STATUS_ASSERTION_FAILURE, 0, 0, nullptr, 6, &Respone);
 	}
