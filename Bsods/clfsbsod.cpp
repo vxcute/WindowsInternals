@@ -1,5 +1,5 @@
 // cc: https://twitter.com/KLINIX5/status/1393168401837793281 
-// Something I removed u don't have to add another path after the a driver so any drive on ur system will work c: or e: etc ... 
+// Something I removed u don't have to add another path after the drive so any drive on ur system will work c: or e: etc ... 
 
 #include <iostream>
 #include <Windows.h>
