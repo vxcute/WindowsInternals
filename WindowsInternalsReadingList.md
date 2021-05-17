@@ -98,8 +98,8 @@ Windows Process Internals (Part 1/5): https://eforensicsmag.com/windows-process-
 
 Windows Internals: https://docs.microsoft.com/en-us/sysinternals/resources/windows-internals 
 
-BLOGS:
-------
+BLOGS / Resources:
+------------------
 
 http://waleedassar.blogspot.com/
 
@@ -118,6 +118,8 @@ https://secret.club/author/jonas-l
 https://www.geoffchappell.com/index.htm?ta=9
 
 https://www.vergiliusproject.com/
+
+https://ntdiff.github.io
 
 PatchGuard:
 ===========
