@@ -33,10 +33,6 @@ void bsod()
 	HANDLE hFile;
 	RtlInitUnicodeString(&filePath, L"\\CLFS\\??\\c:\\");
 	InitializeObjectAttributes(&Obj, &filePath, OBJ_CASE_INSENSITIVE, nullptr, nullptr);
-	
-	LARGE_INTEGER AllocSize{};
-
-	AllocSize.QuadPart = 2048;
 
 	IO_STATUS_BLOCK IoStatusBlock{};
 
