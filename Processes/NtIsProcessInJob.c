@@ -78,7 +78,7 @@ NTSTATUS __fastcall NtIsProcessInJob(HANDLE ProcessHandle, HANDLE JobHandle)
 		if (JobHandle)
 			HalPutDmaAdapter(DmaAdapter);
 		
-		goto DereferenceObjectAndReturn;		// Will Derefernece Object and Exit The Function 
+		goto DereferenceObjectAndReturn;		// Will Derefernece Object (decrements the reference count) and Exit The Function 
 	}
 
 	Object = 0i64;
