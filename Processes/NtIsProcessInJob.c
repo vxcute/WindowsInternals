@@ -91,7 +91,7 @@ NTSTATUS __fastcall NtIsProcessInJob(HANDLE ProcessHandle, HANDLE JobHandle)
 			JobHandle,					      // JobObject Handle 
 			4u,							     // Desired Access 
 			(POBJECT_TYPE)PsJobType,        // Object Has Type of JobObject 
-			PreviousMode,                  // User PreviousMode As The Access Mode 
+			PreviousMode,                  // Use PreviousMode As The Access Mode 
 			&Object,                      // Pointer To The Variable That Will EJOB Pointer   
 			0                            // HandleInformation 
 		);
