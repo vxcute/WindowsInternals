@@ -1,3 +1,5 @@
+// Determines If Process In In Job Passing The A Handle To The Process and A Job Object Handle 
+
 NTSTATUS __fastcall NtIsProcessInJob(HANDLE ProcessHandle, HANDLE JobHandle)
 {
   _KTHREAD *CurrentThread; 
