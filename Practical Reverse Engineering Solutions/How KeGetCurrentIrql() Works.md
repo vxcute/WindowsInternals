@@ -1,6 +1,6 @@
 Windows Uses cr8 to store the current irql 
 
-```x86
+```x64
   public KeGetCurrentIrql
   KeGetCurrentIrql proc near
   mov     rax, cr8
