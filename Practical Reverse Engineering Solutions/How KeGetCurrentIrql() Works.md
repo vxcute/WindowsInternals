@@ -1,4 +1,4 @@
-// Windows Uses cr8 to store the current irql 
+Windows Uses cr8 to store the current irql 
 
 ```x86
   public KeGetCurrentIrql
@@ -8,13 +8,13 @@
   KeGetCurrentIrql endp
 ```
 
-// C Code For This Would Be Simple As That 
+C Code For This Would Be Simple As That 
 
 ```c
 __int64 cr8 = __readcr8(); 
 ```
 
-// U Can Also Read It Using Windbg: 
+U Can Also Read It Using Windbg: 
 
 ```
   0: kd> r cr8 
