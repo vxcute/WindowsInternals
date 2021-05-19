@@ -7,7 +7,9 @@
 
 #pragma comment(lib, "ntdll.lib")
 
-typedef NTSTATUS (*_NtCreateFile)(
+typedef NTSTATUS (*_NtCreateFile)
+	
+(
 	PHANDLE            FileHandle,
 	ACCESS_MASK        DesiredAccess,
 	POBJECT_ATTRIBUTES ObjectAttributes,
