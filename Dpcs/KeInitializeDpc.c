@@ -32,7 +32,7 @@ void NTAPI KeInitializeDpc(PRKDPC Dpc, PKDEFERRED_ROUTINE DeferredRoutine, PVOID
   /*
     Not Sure About This One But It Looks Like Its The Number of DPCs Pending. 
     I Made This Assumption Based on I Had One DPC Running On CPU 0 I Checked Its KDPC ProcessorHistory 
-    Field Was Set To 1, It So Looks Like It Mean Its The Only One Pending But Not Sure.     
+    Field Was Set To 1, It So Looks Like It Mean Its The Only One Pending But Not Sure. But Here It Just Init It To Zero     
   */
   
   Dpc->ProcessorHistory = 0;                         
