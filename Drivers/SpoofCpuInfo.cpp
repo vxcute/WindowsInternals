@@ -1,4 +1,4 @@
-// Just For Fun Nothing Special Here tbh I Was Just Bored af
+// Spoofing CPU Info Just For Fun Nothing Special Here tbh I Was Just Bored af
 
 #include <ntifs.h>
 #include <ntddk.h>
