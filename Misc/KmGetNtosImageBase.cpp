@@ -87,7 +87,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 	DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase1());
 	DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase2());
 	DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase3());
-    DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase4());
+        DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase4());
 	DriverObject->DriverUnload = Unload;
 	return STATUS_SUCCESS;
 }
