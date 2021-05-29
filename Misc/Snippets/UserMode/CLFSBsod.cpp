@@ -24,9 +24,9 @@ typedef NTSTATUS (*_NtCreateFile)
 );
 
 template <typename T>
-auto GetRoutineAddress(std::string routine_name) -> T
+auto GetRoutineAddress(std::string routine_name, std::string module_name) -> T
 {
-    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    HMODULE ntdll = GetModuleHandleA(module_name.c_str());
     if (ntdll) {
         T RoutineAddress = (T)GetProcAddress(ntdll, routine_name.c_str());
         if (RoutineAddress)
@@ -41,7 +41,7 @@ void bsod()
 
 	HMODULE ntdll = GetModuleHandleA("ntdll.dll");
 
-	_NtCreateFile NtCreateFile = GetRoutineAddress<_NtCreateFile>("NtCreateFile");
+	_NtCreateFile NtCreateFile = GetRoutineAddress<_NtCreateFile>("NtCreateFile", "ntdll.dll");
 
 	_OBJECT_ATTRIBUTES Obj{};
 	UNICODE_STRING filePath{};
