@@ -8,6 +8,18 @@ VOID Unload(PDRIVER_OBJECT DriverObject);
 
 typedef NTSTATUS(NTAPI* pPsLookupProcessByProcessId)(_In_ HANDLE ProcessId, _Out_ _PEPROCESS* Process);
 
+template <class T>
+auto GetRoutineAddress(UNICODE_STRING RoutineName) -> T
+{
+    __try {
+            T RoutineAddress = (T)MmGetSystemRoutineAddress(&RoutineName);
+            if (RoutineAddress)
+                return RoutineAddress;
+	    return nullptr;
+    }
+    __except (1) {}
+}
+
 
 // Def: Checks If Its Parent Process or not 
 // Status: Unexported 
@@ -38,7 +50,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 	_PEPROCESS eproc;
 	_PEPROCESS eproc2;
 	UNICODE_STRING FuncName = RTL_CONSTANT_STRING(L"PsLookupProcessByProcessId");
-	pPsLookupProcessByProcessId _pPsLookupProcessByProcessId = (pPsLookupProcessByProcessId)MmGetSystemRoutineAddress(&FuncName);
+	pPsLookupProcessByProcessId _pPsLookupProcessByProcessId = GetRoutineAddress<pPsLookupProcessByProcessId>(FuncName); 
 	// Just Hardcoded pids for testing u shouldn't do that 
 	_pPsLookupProcessByProcessId((HANDLE)392, &eproc);
 	_pPsLookupProcessByProcessId((HANDLE)924, &eproc2);
