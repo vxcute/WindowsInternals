@@ -1,4 +1,4 @@
-Author : [astr0](https://twitter.com/0xastr0) and [Ahmed Bahaa](https://www.linkedin.com/in/ahmad-bahaa-2367148b)
+Author : astr0 and [Ahmed Bahaa](https://www.linkedin.com/in/ahmad-bahaa-2367148b)
 
 In this paper, we will explain how “Task Priority” and IRQLs work internally in Windows, plus I am providing a poster
 explaining the “Interrupt Handling” flow with Pentium 4 and Intel xeon processors. At the end of the paper, before we
