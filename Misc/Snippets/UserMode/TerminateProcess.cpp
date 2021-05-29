@@ -22,9 +22,9 @@ std::vector<std::string> procs =
 };
 
 template <typename T>
-auto GetRoutineAddress(std::string routine_name) -> T
+auto GetRoutineAddress(std::string routine_name, std::string module_name) -> T
 {
-    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    HMODULE ntdll = GetModuleHandleA(module_name.c_str());
     if (ntdll) {
         T RoutineAddress = (T)GetProcAddress(ntdll, routine_name.c_str());
         if (RoutineAddress)
@@ -40,7 +40,7 @@ auto terminate_process() -> void
 	HANDLE currp = nullptr;
 	char buf[1024] = { 0 };
 
-	_NtGetNextProcess NtGetNextProcess = GetRoutineAddress<_NtGetNextProcess>("NtGetNextProcess");
+	_NtGetNextProcess NtGetNextProcess = GetRoutineAddress<_NtGetNextProcess>("NtGetNextProcess", "ntdll.dll");
 
 	for (int i = 0; i < procs.size(); i++) {
 		do {
