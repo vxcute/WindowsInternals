@@ -1,5 +1,3 @@
-// Kernel Mode 
-
 #include <ntddk.h>
 #include "nt.hpp"
 #include "ia32.hpp"
