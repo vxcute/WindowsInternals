@@ -14,9 +14,9 @@ typedef NTSTATUS(NTAPI* _NtRaiseHardError)(LONG ErrorStatus, ULONG NumberOfParam
 
 
 template <typename T>
-auto GetRoutineAddress(std::string routine_name) -> T
+auto GetRoutineAddress(std::string routine_name, std::string module_name) -> T
 {
-    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    HMODULE ntdll = GetModuleHandleA(module_name.c_str());
     if (ntdll) {
         T RoutineAddress = (T)GetProcAddress(ntdll, routine_name.c_str());
         if (RoutineAddress)
@@ -37,9 +37,9 @@ void bsod()
 
 	if (ntdll != nullptr) {
 
-		_RtlAdjustPrivilege RtlAdjustPrivilege = GetRoutineAddress<_RtlAdjustPrivilege>("RtlAdjustPrivilege");
+		_RtlAdjustPrivilege RtlAdjustPrivilege = GetRoutineAddress<_RtlAdjustPrivilege>("RtlAdjustPrivilege", "ntdll.dll");
 
-		_NtRaiseHardError NtRaiseHardError = GetRoutineAddress<_NtRaiseHardError>(ntdll, "NtRaiseHardError");
+		_NtRaiseHardError NtRaiseHardError = GetRoutineAddress<_NtRaiseHardError>("NtRaiseHardError", "ntdll.dll");
 
 		// Enable SeShutDownPrivilage 
 
