@@ -16,9 +16,8 @@ auto GetRoutineAddress(UNICODE_STRING RoutineName) -> T
             T RoutineAddress = (T)MmGetSystemRoutineAddress(&RoutineName);
             if (RoutineAddress)
                 return RoutineAddress;
+	    return nullptr; 
         }
-        else
-            DbgPrint("Couldn't Find Routine Address");
     }
     __except (1) {}
 }
@@ -33,8 +32,7 @@ auto GetNtosImageBase1() -> PVOID
 			NTSTATUS SysInfoDrv = ZwQuerySystemInformation(SystemModuleInformation, ModInfo, 4096, nullptr);
 			return ModInfo->Module[0].ImageBase;
 		}
-		else
-			DbgPrint("Failed To Allocate ModuleInfo Memory");
+		return nullptr; 
 	}
 
 	__except(1){}
@@ -49,8 +47,7 @@ auto GetNtosImageBase2() -> PVOID
 		RtlLookupFunctionEntry((DWORD64)&MmFreeContiguousMemorySpecifyCache, &ImageBase, nullptr);
 		if (ImageBase)
 			return reinterpret_cast<PVOID>(ImageBase);
-		else
-			DbgPrint("Failed To Get ntoskrnl.exe ImageBase :(");
+		return nullptr; 
 	}
 	__except(1){}
 }
