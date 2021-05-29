@@ -14,13 +14,26 @@ typedef NTSTATUS(NTAPI* _NtGetNextProcess)(
 	_Out_ PHANDLE NewProcessHandle
 	);
 
+template <typename T>
+auto GetRoutineAddress(std::string routine_name) -> T
+{
+    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    if (ntdll) {
+        T RoutineAddress = (T)GetProcAddress(ntdll, routine_name.c_str());
+        if (RoutineAddress)
+            return RoutineAddress;
+        return nullptr;
+    }
+    return nullptr;
+}
+
 auto get_proc_id(std::string procname) -> DWORD
 {
 	HMODULE ntdll = GetModuleHandleA("ntdll.dll");
 	HANDLE currp = nullptr;
 	char buf[1024] = { 0 };
 
-	_NtGetNextProcess NtGetNextProcess = (_NtGetNextProcess)GetProcAddress(ntdll, "NtGetNextProcess");
+	_NtGetNextProcess NtGetNextProcess = GetRoutineAddress<_NtGetNextProcess>("NtGetNextProcess");
 
 	while (!NtGetNextProcess(currp, MAXIMUM_ALLOWED, 0, 0, &currp)) {
 		GetModuleFileNameExA(currp, 0, buf, MAX_PATH);
