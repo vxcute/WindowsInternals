@@ -23,3 +23,5 @@ U Can Also Read It Using Windbg:
   0: kd> r cr8 
   cr8=000000000000000f
 ```
+
+For More Info Check My [Paper](https://github.com/vxcute/WindowsInternals/blob/main/Papers/Windows%20Irqs/Windows%20Irqls.pdf)
