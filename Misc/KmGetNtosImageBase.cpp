@@ -15,7 +15,7 @@ auto GetRoutineAddress(UNICODE_STRING RoutineName) -> T
             T RoutineAddress = (T)MmGetSystemRoutineAddress(&RoutineName);
             if (RoutineAddress)
                 return RoutineAddress;
-			return nullptr;
+	    return nullptr;
     }
     __except (1) {}
 }
