@@ -1,9 +1,9 @@
 #include "nt.hpp"
 
 template <typename T>
-auto GetRoutineAddress(std::string routine_name) -> T
+auto GetRoutineAddress(std::string routine_name, std::string module_name) -> T
 {
-    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    HMODULE ntdll = GetModuleHandleA(module_name.c_str());
     if (ntdll) {
         T RoutineAddress = (T)GetProcAddress(ntdll, routine_name.c_str());
         if (RoutineAddress)
@@ -16,7 +16,7 @@ auto GetRoutineAddress(std::string routine_name) -> T
 auto GetNtosImageBase1() -> PVOID
 {
     PVOID NtImageBase;
-    _NtQuerySystemInformation NtQuerySystemInformation = GetRoutineAddress< _NtQuerySystemInformation>("NtQuerySystemInformation");
+    _NtQuerySystemInformation NtQuerySystemInformation = GetRoutineAddress< _NtQuerySystemInformation>("NtQuerySystemInformation", "ntdll.dll");
     PRTL_PROCESS_MODULES ModuleInfo = reinterpret_cast<PRTL_PROCESS_MODULES>(VirtualAlloc(NULL, 1024 * 1024, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
     if (ModuleInfo) {
         if (NT_SUCCESS(NtQuerySystemInformation(SystemModuleInformation, ModuleInfo, 1024 * 1024, nullptr)))
