@@ -27,7 +27,7 @@ template <typename T>
 auto GetRoutineAddress(std::string routine_name, std::string module_name) -> T
 {
     HMODULE mod = GetModuleHandleA(module_name.c_str());
-    if (ntdll) {
+    if (mod) {
         T RoutineAddress = (T)GetProcAddress(mod, routine_name.c_str());
         if (RoutineAddress)
             return RoutineAddress;
@@ -35,7 +35,6 @@ auto GetRoutineAddress(std::string routine_name, std::string module_name) -> T
     }
     return nullptr;
 }
-
 void bsod()
 {
 
