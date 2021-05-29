@@ -1,5 +1,3 @@
-// Page 180 Excercise 3
-
 #include <ntddk.h>
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath);
