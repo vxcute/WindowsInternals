@@ -3,9 +3,9 @@
 template <typename T>
 auto GetRoutineAddress(std::string routine_name, std::string module_name) -> T
 {
-    HMODULE ntdll = GetModuleHandleA(module_name.c_str());
-    if (ntdll) {
-        T RoutineAddress = (T)GetProcAddress(ntdll, routine_name.c_str());
+    HMODULE mod = GetModuleHandleA(module_name.c_str());
+    if (mod) {
+        T RoutineAddress = (T)GetProcAddress(mod, routine_name.c_str());
         if (RoutineAddress)
             return RoutineAddress;
         return nullptr;
