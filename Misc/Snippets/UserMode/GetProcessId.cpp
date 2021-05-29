@@ -1,4 +1,4 @@
-// This Technique doesn't work with process related to windows it self like winlogon.exe will always return garbage value because it can't optain a handle to it bassicly 
+// This Technique doesn't work with process related to windows it self like winlogon.exe will always return garbage value because it couldn't optain a handle to it bassicly 
 
 #include <iostream>
 #include <Windows.h>
