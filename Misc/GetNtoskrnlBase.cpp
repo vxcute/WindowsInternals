@@ -147,6 +147,7 @@ auto GetNtosBase2() -> PVOID
         cDrivers = Needed / sizeof(Drivers[0]);
         return Drivers[0];
     }
+    return nullptr; 
 }
 
 int main()
