@@ -1,4 +1,4 @@
 # WindowsInternals 
-A Repo To Share My Experiments While Playing With Windows Internals. This Include Reversed Functions from ntoskrnl.exe, Drivers, etc ...  
+A repo to share my experiments while playing with Windows Internals. This include reversed functions from ntoskrnl.exe, drivers, etc ...  
 
-The Decompiled Code Is Based On IDA Hex Rays Decompiler But I Fixed Types, Added Comments And Renamed Some Stuff. Keep In Mind The Not All The Decompiled Code Is Not Intended To Be Working. 
+The decompiled code is based on IDA hex rays decompiler but I fixed types, added comments and renamed some stuff. Keep in mind not all the decompiled code is Intended to be working. 
