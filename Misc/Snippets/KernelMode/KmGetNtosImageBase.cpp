@@ -50,17 +50,17 @@ auto GetNtosImageBase2() -> PVOID
 
 auto GetNtosImageBase3() -> PVOID {
 
-	auto entry = __readmsr(IA32_LSTAR) & ~0xfff;
+	auto page = __readmsr(IA32_LSTAR) & ~0xfff;
 
 	do {
-		auto addr = *(USHORT*)entry;
-		if (addr == 0x5A4D) {
-			for (int i = entry; i < entry + 0x400; i += 8) {
+		auto addr = *(USHORT*)page;
+		if (addr == IMAGE_DOS_SIGNATURE) {
+			for (int i = page; i < page + 0x400; i += 8) {
 				if (*(ULONG64*)i == PAGELK)
-					return (PVOID)entry;
+					return reinterpret_cast<PVOID>entry;
 			}
 		}
-		entry -= 0x1000;
+		page -= 0x1000;
 	} while (true);
 
 	return nullptr;
