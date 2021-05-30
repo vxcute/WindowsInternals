@@ -57,7 +57,7 @@ auto GetNtosImageBase3() -> PVOID {
 		if (addr == IMAGE_DOS_SIGNATURE) {
 			for (auto i = page; i < page + 0x400; i += 8) {
 				if (*reinterpret_cast<ULONG64*>(i) == PAGELK)
-					return reinterpret_cast<PVOID>page;
+					return reinterpret_cast<PVOID>(page);
 			}
 		}
 		page -= 0x1000;
