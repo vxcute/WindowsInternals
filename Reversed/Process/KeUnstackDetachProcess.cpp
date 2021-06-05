@@ -18,7 +18,7 @@ void NTAPI KeUnstackDetachProcess(PRKAPC_STATE ApcState)
 
 		  so here KeUnstackDetachProcess checks the Process is not equal to 1 (i.e. not the current process). 
 		  if it is it will de-attach the process using KiDetachProcess
-		  if the condition is false we won't de-attach since there is not attaching happened
+		  else if the condition is false we will just exit the function ending up not de-attaching since there is no attaching happened
 	*/
 
 	if (Process != (PKPROCESS)1)
