@@ -1,3 +1,3 @@
 dx -r1 -g Debugger.Utility.Collections.FromListEntry(*(nt!_LIST_ENTRY*)&nt!KiProcessListHead, "nt!_KPROCESS", "ProcessListEntry").Select( p => new {DirTableBase = p.DirectoryTableBase})
 
-dx -r1 -g Debugger.Utility.Collections.FromListEntry(*(nt!_LIST_ENTRY*)&nt!PsActiveProcessHead, "nt!_EPROCESS", "ActiveProcessLinks").Select(p => new {ImageName = ((char*)p.ImageFileName).ToDisplayString("s")})
+dx -r1 -g Debugger.Utility.Collections.FromListEntry(*(nt!_LIST_ENTRY*)&nt!PsActiveProcessHead, "nt!_EPROCESS", "ActiveProcessLinks").Select(p => new {ImageName = ((char*)p.ImageFileName).ToDisplayString("s"), DirTableBase = p.Pcb->DirectoryTableBase})
