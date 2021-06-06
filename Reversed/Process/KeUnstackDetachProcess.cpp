@@ -25,6 +25,6 @@ void NTAPI KeUnstackDetachProcess(PRKAPC_STATE ApcState)
 	{
 		if (!Process)
 			ApcState = &KeGetCurrentThread()->SavedApcState;
-		KiDetachProcess(ApcState, NULL);
+		KiDetachProcess((PKTHREAD)ApcState, NULL);
 	}
 }
