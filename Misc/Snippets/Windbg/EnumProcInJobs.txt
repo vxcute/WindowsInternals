@@ -1,0 +1,1 @@
+ dx -r2 -g Debugger.Utility.Collections.FromListEntry(*(nt!_LIST_ENTRY*)&nt!HandleTableListHead, "nt!_HANDLE_TABLE", "HandleTableList").Where(h => h.QuotaProcess != 0 && h.QuotaProcess->Job != 0).Select( p => new { EPROCESS = p.QuotaProcess, ImageName = ((char*)(p.QuotaProcess->ImageFileName)).ToDisplayString("s"), ProcessId = p.QuotaProcess->UniqueProcessId})
