@@ -1,0 +1,2 @@
+dx @$InvertedFunctionTable = (nt!_INVERTED_FUNCTION_TABLE*)&nt!PsInvertedFunctionTable 
+dx @$KernelBase= (*(nt!_INVERTED_FUNCTION_TABLE_ENTRY(*)[0xbe])@$InvertedFunctionTable->TableEntry).First().ImageBase
