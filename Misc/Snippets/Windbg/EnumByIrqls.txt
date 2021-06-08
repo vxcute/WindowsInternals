@@ -1,0 +1,1 @@
+dx @$EnumByIrqls = ((Irql) => @$cursession.Processes.Where(p => p.Threads.Count() != 0).Select(p => p.Threads.Where(t => t.Registers.Kernel.cr8 == Irql).Select(t => t.Registers.Kernel.cr8)))
