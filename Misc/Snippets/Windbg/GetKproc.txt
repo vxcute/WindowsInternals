@@ -1,0 +1,1 @@
+dx @$GetKPROC = ((ProcName) => @$cursession.Processes.Where(p => p.Name == ProcName).Select(p => p.KernelObject.Pcb))
