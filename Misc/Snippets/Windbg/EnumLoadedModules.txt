@@ -1,1 +1,1 @@
-0: kd> dx -r2 -g Debugger.Utility.Collections.FromListEntry(*(nt!_LIST_ENTRY*)&nt!PsLoadedModuleList, "nt!_KLDR_DATA_TABLE_ENTRY", "InLoadOrderLinks").Select(m => new {BaseDllName = m.BaseDllName, FullDllName = m.FullDllName, DllBase = m.DllBase})
+dx -r2 -g Debugger.Utility.Collections.FromListEntry(*(nt!_LIST_ENTRY*)&nt!PsLoadedModuleList, "nt!_KLDR_DATA_TABLE_ENTRY", "InLoadOrderLinks").Select(m => new {BaseDllName = m.BaseDllName, FullDllName = m.FullDllName, DllBase = m.DllBase})
