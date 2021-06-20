@@ -1,93 +1,106 @@
 #include <ntddk.h>
-#include "nt.hpp"
-#include "ia32.hpp"
 #include <intrin.h>
+#include <nt.hpp>
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath);
 VOID Unload(PDRIVER_OBJECT DriverObject);
 
-template <class T>
-auto GetRoutineAddress(UNICODE_STRING RoutineName) -> T
+template <typename T>
+T GetKernelExport(PCWSTR zExportName) 
 {
-    __try {
-            T RoutineAddress = (T)MmGetSystemRoutineAddress(&RoutineName);
-            if (RoutineAddress)
-                return RoutineAddress;
-	    return nullptr;
-    }
-    __except (1) {}
+	__try
+	{
+		UNICODE_STRING ExportName;
+
+		RtlInitUnicodeString(&ExportName, zExportName);
+
+		T RoutineAddress = (T)MmGetSystemRoutineAddress(&ExportName);
+
+		if (RoutineAddress)
+			return RoutineAddress;
+		return T();
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-auto GetNtosImageBase1() -> PVOID
+PVOID GetNtosImageBase1()
 {
-	__try {
+	__try 
+	{
 		PVOID NtImageBase;
-		PSYSTEM_MODULE_INFORMATION ModInfo = reinterpret_cast<PSYSTEM_MODULE_INFORMATION>(ExAllocatePool(NonPagedPool, 1024 * 1024));
-		UNICODE_STRING RoutineName = RTL_CONSTANT_STRING(L"ZwQuerySystemInformation");
-		_ZwQuerySystemInformation ZwQuerySystemInformation = GetRoutineAddress< _ZwQuerySystemInformation>(RoutineName);
-		NTSTATUS SysInfoDrv = ZwQuerySystemInformation(SystemModuleInformation, ModInfo, 1024 * 1024, nullptr);
-		NtImageBase = ModInfo->Module[0].ImageBase;
-		if (NtImageBase)
-			return NtImageBase;
+		
+		PSYSTEM_MODULE_INFORMATION ModInfo;
+
+		_ZwQuerySystemInformation ZwQuerySystemInformation;
+
+		ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
+
+		ModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePool(NonPagedPool, POOL_SIZE);
+
+		if (ModInfo)
+		{
+
+			if (NT_SUCCESS(ZwQuerySystemInformation(SystemModuleInformation, ModInfo, POOL_SIZE, nullptr)))
+			{
+				NtImageBase = ModInfo->Module[0].ImageBase;
+
+				if (NtImageBase)
+				{
+					ExFreePool(ModInfo);
+					return NtImageBase;
+				}
+			}
+		}
+
+		ExFreePool(ModInfo);
 		return nullptr;
 	}
-	__except(1){}
+	
+	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-auto GetNtosImageBase2() -> PVOID
+PVOID GetNtosImageBase2()
 {
-	__try {
-		UNICODE_STRING RoutineName = RTL_CONSTANT_STRING(L"RtlLookupFunctionEntry");
-		_RtlLookupFunctionEntry RtlLookupFunctionEntry = GetRoutineAddress< _RtlLookupFunctionEntry>(RoutineName);
-		DWORD64 NtImageBase;
-		RtlLookupFunctionEntry((DWORD64)&MmCopyMemory, &NtImageBase, nullptr);
-		if (NtImageBase)
-			return reinterpret_cast<PVOID>(NtImageBase);
+	__try 
+	{
+		uintptr_t NtosImageBase;
+
+		_RtlLookupFunctionEntry RtlLookupFunctionEntry;
+
+		RtlLookupFunctionEntry = GetKernelExport<_RtlLookupFunctionEntry>(L"RtlLookupFunctionEntry");
+
+		RtlLookupFunctionEntry((DWORD64)&MmCopyMemory, &NtosImageBase, nullptr);
+
+		if (NtosImageBase)
+			return (PVOID)NtosImageBase;
+
 		return nullptr;
 	}
-	__except(1){}
+	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
+
 
 PVOID GetNtosImageBase3()
 {
 	__try
 	{
-		auto Page = __readmsr(IA32_LSTAR) & ~0xfff;
 
-		for (; Page; Page -= PAGE_SIZE)
-		{
-			if (*(USHORT*)Page == IMAGE_DOS_SIGNATURE)
-			{
+		PVOID NtosImageBase;
 
-				for (auto Bytes = Page; Bytes < Page + 0x400; Bytes += 8)
-				{
-					if (*(ULONG64*)(Bytes) == PAGELK_PATTERN)
-						return (PVOID)Page;
-				}
-			}
-		}
+		_RtlPcToFileHeader RtlPcToFileHeader = GetKernelExport<_RtlPcToFileHeader>(L"RtlPcToFileHeader");
+
+		RtlPcToFileHeader(&MmCopyMemory, &NtosImageBase);
+
+		if (NtosImageBase)
+			return NtosImageBase;
 
 		return nullptr;
 	}
-
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-auto GetNtosImageBase4() -> PVOID
-{
-	__try {
-		UNICODE_STRING RoutineName = RTL_CONSTANT_STRING(L"RtlPcToFileHeader");
-		_RtlPcToFileHeader RtlPcToFileHeader = GetRoutineAddress<_RtlPcToFileHeader>(RoutineName);
-		PVOID NtImageBase;
-		RtlPcToFileHeader(&MmCopyMemory, &NtImageBase);
-		if(NtImageBase)
-			return NtImageBase;
-		return nullptr;
-	}
-	__except(1){}
-}
 
-PVOID GetNtosImageBase5()
+PVOID GetNtosImageBase4()
 {
 	__try
 	{
@@ -104,7 +117,38 @@ PVOID GetNtosImageBase5()
 				for (auto Bytes = Page; Bytes < Page + 0x400; Bytes += 8)
 				{
 					if (*(ULONG64*)(Bytes) == PAGELK_PATTERN)
+					{
 						return (PVOID)Page;
+					}
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	__except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
+
+PVOID GetNtosImageBase5()
+{
+	__try
+	{
+		auto Page = __readmsr(IA32_LSTAR) & ~0xfff;
+
+		for (; Page; Page -= PAGE_SIZE)
+		{
+
+			if (*(USHORT*)Page == IMAGE_DOS_SIGNATURE)
+			{
+
+				for (auto Bytes = Page; Bytes < Page + 0x400; Bytes += 8)
+				{
+					if (*(ULONG64*)(Bytes) == PAGELK_PATTERN)
+					{
+						return (PVOID)Page;
+					}
 				}
 			}
 		}
@@ -117,16 +161,18 @@ PVOID GetNtosImageBase5()
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 {
-	DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase1());
-	DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase2());
-	DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase3());
-        DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase4());
-	DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase5());
+	UNREFERENCED_PARAMETER(RegPath);
+	DbgPrint("%p", GetNtosImageBase1());
+	DbgPrint("%p", GetNtosImageBase2());
+	DbgPrint("%p", GetNtosImageBase3());
+	DbgPrint("%p", GetNtosImageBase4());
+	DbgPrint("%p", GetNtosImageBase5());
 	DriverObject->DriverUnload = Unload;
 	return STATUS_SUCCESS;
 }
 
 VOID Unload(PDRIVER_OBJECT DriverObject)
 {
+	UNREFERENCED_PARAMETER(DriverObject);
 	DbgPrint("Driver Unloaded");
 }
