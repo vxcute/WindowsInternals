@@ -1,6 +1,7 @@
+#include <ntifs.h>
 #include <ntddk.h>
 #include <intrin.h>
-#include <nt.hpp>
+#include "nt.hpp"
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath);
 VOID Unload(PDRIVER_OBJECT DriverObject);
@@ -16,15 +17,13 @@ T GetKernelExport(PCWSTR zExportName)
 
 		T ExportAddress = (T)MmGetSystemRoutineAddress(&UExportName);
 
-		if (ExportAddress)
-		{
-			return ExportAddress;
-		}
+		return ExportAddress ? ExportAddress : T();
 
-		return T();
 	}
+
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
+
 
 PVOID GetNtosImageBase1()
 {
@@ -66,22 +65,16 @@ PVOID GetNtosImageBase2()
 {
 	__try 
 	{
-		uintptr_t NtosImageBase;
+		PVOID NtosImageBase;
 
 		_RtlLookupFunctionEntry RtlLookupFunctionEntry;
 
 		RtlLookupFunctionEntry = GetKernelExport<_RtlLookupFunctionEntry>(L"RtlLookupFunctionEntry");
 
-		RtlLookupFunctionEntry((DWORD64)&MmCopyMemory, &NtosImageBase, nullptr);
+		RtlLookupFunctionEntry((DWORD64)&MmCopyMemory, (PDWORD64)&NtosImageBase, nullptr);
 
-		if (NtosImageBase)
-		{
-		    return (PVOID)NtosImageBase;
-		}
-
-		return nullptr;
+		return NtosImageBase ? NtosImageBase : nullptr;
 	}
-	
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
@@ -90,21 +83,14 @@ PVOID GetNtosImageBase3()
 {
 	__try
 	{
-
 		PVOID NtosImageBase;
 
 		_RtlPcToFileHeader RtlPcToFileHeader = GetKernelExport<_RtlPcToFileHeader>(L"RtlPcToFileHeader");
 
 		RtlPcToFileHeader(&MmCopyMemory, &NtosImageBase);
 
-		if (NtosImageBase)
-		{
-		    return NtosImageBase;
-		}
-		
-		return nullptr;
+		return NtosImageBase ? NtosImageBase : nullptr;
 	}
-	
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
@@ -168,6 +154,7 @@ PVOID GetNtosImageBase5()
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
+
 PVOID GetNtosImageBase6()
 {
 
@@ -181,7 +168,6 @@ PVOID GetNtosImageBase6()
 
 	return NtosKldr ? NtosKldr->DllBase : nullptr;
 }
-
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 {
