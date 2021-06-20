@@ -171,27 +171,19 @@ PVOID GetNtosImageBase5()
 PVOID GetNtosImageBase6()
 {
 
-	PKLDR_DATA_TABLE_ENTRY CurrentKldrEntry;
+	PKLDR_DATA_TABLE_ENTRY NtosKldr;
 
 	PLIST_ENTRY PsLoadedModuleList;
 
-	UNICODE_STRING NtModName;
+	UNICODE_STRING UNtModName;
 
-	RtlInitUnicodeString(&NtModName, L"ntoskrnl.exe");
+	RtlInitUnicodeString(&UNtModName, L"ntoskrnl.exe");
 
 	PsLoadedModuleList = GetKernelExport<PLIST_ENTRY>(L"PsLoadedModuleList");
 
-	CurrentKldrEntry = (PKLDR_DATA_TABLE_ENTRY)PsLoadedModuleList->Flink;
+	NtosKldr = (PKLDR_DATA_TABLE_ENTRY)PsLoadedModuleList->Flink;
 
-	while ((PLIST_ENTRY)CurrentKldrEntry != PsLoadedModuleList)
-	{
-		if (!RtlCompareUnicodeString(&CurrentKldrEntry->BaseDllName, &NtModName, true))
-		{
-			return CurrentKldrEntry->DllBase;
-		}
-
-		CurrentKldrEntry = (PKLDR_DATA_TABLE_ENTRY)CurrentKldrEntry->InLoadOrderLinks.Flink;
-	}
+	return NtosKldr->DllBase;
 }
 
 
