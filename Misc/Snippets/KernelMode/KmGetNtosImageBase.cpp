@@ -31,7 +31,7 @@ PVOID GetNtosImageBase1()
 {
 	__try 
 	{
-		PVOID NtImageBase;
+		PVOID NtosImageBase;
 		
 		PSYSTEM_MODULE_INFORMATION ModInfo;
 
@@ -39,24 +39,24 @@ PVOID GetNtosImageBase1()
 
 		ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
 
-		ModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePool(NonPagedPool, POOL_SIZE);
+		ModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePoolZero(NonPagedPool, POOL_SIZE, POOL_TAG);
 
 		if (ModInfo)
 		{
 
-		     if (NT_SUCCESS(ZwQuerySystemInformation(SystemModuleInformation, ModInfo, POOL_SIZE, nullptr)))
-		     {
-		     	  NtosImageBase = ModInfo->Module[0].ImageBase;     
-			     
-		     	  if (NtosImageBase)
-		     	  {
-		     	  	ExFreePool(ModInfo);
-		     	  	return NtosImageBase;
-		     	  }
-		     }
+			if (NT_SUCCESS(ZwQuerySystemInformation(SystemModuleInformation, ModInfo, POOL_SIZE, nullptr)))
+			{
+				NtosImageBase = ModInfo->Module[0].ImageBase;
+
+				if (NtosImageBase)
+				{
+					ExFreePoolWithTag(ModInfo, POOL_TAG);
+					return NtosImageBase;
+				}
+			}
 		}
 
-		ExFreePool(ModInfo);
+		ExFreePoolWithTag(ModInfo, POOL_TAG);
 		return nullptr;
 	}
 	
