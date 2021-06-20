@@ -40,7 +40,7 @@ auto GetNtosImageBase2() -> PVOID
 		UNICODE_STRING RoutineName = RTL_CONSTANT_STRING(L"RtlLookupFunctionEntry");
 		_RtlLookupFunctionEntry RtlLookupFunctionEntry = GetRoutineAddress< _RtlLookupFunctionEntry>(RoutineName);
 		DWORD64 NtImageBase;
-		RtlLookupFunctionEntry((DWORD64)&MmFreeContiguousMemorySpecifyCache, &NtImageBase, nullptr);
+		RtlLookupFunctionEntry((DWORD64)&MmCopyMemory, &NtImageBase, nullptr);
 		if (NtImageBase)
 			return reinterpret_cast<PVOID>(NtImageBase);
 		return nullptr;
@@ -79,7 +79,7 @@ auto GetNtosImageBase4() -> PVOID
 		UNICODE_STRING RoutineName = RTL_CONSTANT_STRING(L"RtlPcToFileHeader");
 		_RtlPcToFileHeader RtlPcToFileHeader = GetRoutineAddress<_RtlPcToFileHeader>(RoutineName);
 		PVOID NtImageBase;
-		RtlPcToFileHeader(&MmFreeContiguousMemorySpecifyCache, &NtImageBase);
+		RtlPcToFileHeader(&MmCopyMemory, &NtImageBase);
 		if(NtImageBase)
 			return NtImageBase;
 		return nullptr;
