@@ -186,7 +186,7 @@ PVOID GetNtosImageBase6()
 
 	while ((PLIST_ENTRY)CurrentKldrEntry != PsLoadedModuleList)
 	{
-		if (!RtlCompareUnicodeString(&CurrentKldrEntry->BaseDllName, &UNtModName, TRUE))
+		if (!RtlCompareUnicodeString(&CurrentKldrEntry->BaseDllName, &UNtModName, true))
 		{
 			return CurrentKldrEntry->DllBase;
 		}
