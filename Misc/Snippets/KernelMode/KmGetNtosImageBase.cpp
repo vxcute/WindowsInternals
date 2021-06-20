@@ -199,12 +199,12 @@ PVOID GetNtosImageBase6()
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 {
 	UNREFERENCED_PARAMETER(RegPath);
-	DbgPrint("%p", GetNtosImageBase1());
-	DbgPrint("%p", GetNtosImageBase2());
-	DbgPrint("%p", GetNtosImageBase3());
-	DbgPrint("%p", GetNtosImageBase4());
-	DbgPrint("%p", GetNtosImageBase5());
-	DbgPrint("%p", GetNtosImageBase6());
+	DbgPrint("ntoskrnl.exe base address: [%p]", GetNtosImageBase1());
+	DbgPrint("ntoskrnl.exe base address: [%p]", GetNtosImageBase2());
+	DbgPrint("ntoskrnl.exe base address: [%p]", GetNtosImageBase3());
+	DbgPrint("ntoskrnl.exe base address: [%p]", GetNtosImageBase4());
+	DbgPrint("ntoskrnl.exe base address: [%p]", GetNtosImageBase5());
+	DbgPrint("ntoskrnl.exe base address: [%p]", GetNtosImageBase6());
 	DriverObject->DriverUnload = Unload;
 	return STATUS_SUCCESS;
 }
