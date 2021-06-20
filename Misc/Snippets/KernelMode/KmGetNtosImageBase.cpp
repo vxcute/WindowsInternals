@@ -6,24 +6,23 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath);
 VOID Unload(PDRIVER_OBJECT DriverObject);
 
 template <typename T>
-T GetKernelExport(PCWSTR zExportName) 
+T GetKernelExport(PCWSTR zExportName)
 {
 	__try
 	{
-		UNICODE_STRING ExportName;
+		UNICODE_STRING UExportName;
 
-		RtlInitUnicodeString(&ExportName, zExportName);
+		RtlInitUnicodeString(&UExportName, zExportName);
 
-		T RoutineAddress = (T)MmGetSystemRoutineAddress(&ExportName);
+		T ExportAddress = (T)MmGetSystemRoutineAddress(&UExportName);
 
-		if (RoutineAddress)
+		if (ExportAddress)
 		{
-		    return RoutineAddress;
+			return ExportAddress;
 		}
-		
+
 		return T();
 	}
-	
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
