@@ -48,22 +48,29 @@ auto GetNtosImageBase2() -> PVOID
 	__except(1){}
 }
 
-auto GetNtosImageBase3() -> PVOID {
+PVOID GetNtosImageBase()
+{
+	__try
+	{
+		auto Page = __readmsr(IA32_LSTAR) & ~0xfff;
 
-	auto page = __readmsr(IA32_LSTAR) & ~0xfff;
+		for (; Page; Page -= PAGE_SIZE)
+		{
+			if (*(USHORT*)Page == IMAGE_DOS_SIGNATURE)
+			{
 
-	do {
-		auto addr = *reinterpret_cast<USHORT*>(page);
-		if (addr == IMAGE_DOS_SIGNATURE) {
-			for (auto i = page; i < page + 0x400; i += 8) {
-				if (*reinterpret_cast<ULONG64*>(i) == PAGELK)
-					return reinterpret_cast<PVOID>(page);
+				for (auto Bytes = Page; Bytes < Page + 0x400; Bytes += 8)
+				{
+					if (*(ULONG64*)(Bytes) == PAGELK_PATTERN)
+						return (PVOID)Page;
+				}
 			}
 		}
-		page -= 0x1000;
-	} while (true);
 
-	return nullptr;
+		return nullptr;
+	}
+
+	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
 auto GetNtosImageBase4() -> PVOID
