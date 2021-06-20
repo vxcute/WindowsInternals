@@ -175,15 +175,11 @@ PVOID GetNtosImageBase6()
 
 	PLIST_ENTRY PsLoadedModuleList;
 
-	UNICODE_STRING UNtModName;
-
-	RtlInitUnicodeString(&UNtModName, L"ntoskrnl.exe");
-
 	PsLoadedModuleList = GetKernelExport<PLIST_ENTRY>(L"PsLoadedModuleList");
 
 	NtosKldr = (PKLDR_DATA_TABLE_ENTRY)PsLoadedModuleList->Flink;
 
-	return NtosKldr->DllBase;
+	return NtosKldr ? NtosKldr->DllBase : nullptr;
 }
 
 
