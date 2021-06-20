@@ -87,6 +87,34 @@ auto GetNtosImageBase4() -> PVOID
 	__except(1){}
 }
 
+PVOID GetNtosImageBase5()
+{
+	__try
+	{
+		PIDT_ENTRY IdtBase = (PIDT_ENTRY)KeGetPcr()->IdtBase;
+
+		auto Page = (uintptr_t)IdtBase[0].InterruptServiceRoutine & ~0xfff;
+
+		for (; Page; Page -= PAGE_SIZE)
+		{
+
+			if (*(USHORT*)Page == IMAGE_DOS_SIGNATURE)
+			{
+
+				for (auto Bytes = Page; Bytes < Page + 0x400; Bytes += 8)
+				{
+					if (*(ULONG64*)(Bytes) == PAGELK_PATTERN)
+						return (PVOID)Page;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	__except (EXCEPTION_EXECUTE_HANDLER) {}
+}
+
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 {
 	DbgPrint("ntoskrnl.exe base address: %p", GetNtosImageBase1());
