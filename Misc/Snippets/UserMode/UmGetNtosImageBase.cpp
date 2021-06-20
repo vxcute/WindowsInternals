@@ -5,20 +5,6 @@
 
 #define ARRAY_SIZE 1024
 
-PVOID GetNtosImageBase1()
-{
-    LPVOID ImageBase[ARRAY_SIZE];
-
-    DWORD Needed;
-    
-    if (EnumDeviceDrivers(ImageBase, ARRAY_SIZE, &Needed))
-    {
-        return ImageBase[0];
-    }
-
-    return nullptr;
-}
-
 template <typename T>
 T GetRoutineAddress(PCSTR RoutineName, PCSTR ModuleName) 
 {
@@ -32,6 +18,20 @@ T GetRoutineAddress(PCSTR RoutineName, PCSTR ModuleName)
         {
             return RoutineAddress;
         }
+    }
+
+    return nullptr;
+}
+
+PVOID GetNtosImageBase1()
+{
+    LPVOID ImageBase[ARRAY_SIZE];
+
+    DWORD Needed;
+    
+    if (EnumDeviceDrivers(ImageBase, ARRAY_SIZE, &Needed))
+    {
+        return ImageBase[0];
     }
 
     return nullptr;
