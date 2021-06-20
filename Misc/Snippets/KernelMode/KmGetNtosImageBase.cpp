@@ -46,12 +46,12 @@ PVOID GetNtosImageBase1()
 
 		     if (NT_SUCCESS(ZwQuerySystemInformation(SystemModuleInformation, ModInfo, POOL_SIZE, nullptr)))
 		     {
-		     	  NtImageBase = ModInfo->Module[0].ImageBase;     
+		     	  NtosImageBase = ModInfo->Module[0].ImageBase;     
 			     
-		     	  if (NtImageBase)
+		     	  if (NtosImageBase)
 		     	  {
 		     	  	ExFreePool(ModInfo);
-		     	  	return NtImageBase;
+		     	  	return NtosImageBase;
 		     	  }
 		     }
 		}
