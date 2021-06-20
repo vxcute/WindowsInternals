@@ -169,6 +169,33 @@ PVOID GetNtosImageBase5()
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
+PVOID GetNtosImageBase6()
+{
+
+	PKLDR_DATA_TABLE_ENTRY KldrEntry = nullptr, CurrentKldrEntry;
+
+	PLIST_ENTRY PsLoadedModuleList;
+
+	UNICODE_STRING UNtModName;
+
+	RtlInitUnicodeString(&UNtModName, L"ntoskrnl.exe");
+
+	PsLoadedModuleList = GetKernelExport<PLIST_ENTRY>(L"PsLoadedModuleList");
+
+	CurrentKldrEntry = reinterpret_cast<PKLDR_DATA_TABLE_ENTRY>(PsLoadedModuleList->Flink);
+
+	while ((PLIST_ENTRY)CurrentKldrEntry != PsLoadedModuleList)
+	{
+		if (!RtlCompareUnicodeString(&CurrentKldrEntry->BaseDllName, &UNtModName, TRUE))
+		{
+			return CurrentKldrEntry->DllBase;
+		}
+
+		CurrentKldrEntry = (PKLDR_DATA_TABLE_ENTRY)CurrentKldrEntry->InLoadOrderLinks.Flink;
+	}
+}
+
+
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 {
 	UNREFERENCED_PARAMETER(RegPath);
@@ -177,6 +204,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 	DbgPrint("%p", GetNtosImageBase3());
 	DbgPrint("%p", GetNtosImageBase4());
 	DbgPrint("%p", GetNtosImageBase5());
+	DbgPrint("%p", GetNtosImageBase6());
 	DriverObject->DriverUnload = Unload;
 	return STATUS_SUCCESS;
 }
