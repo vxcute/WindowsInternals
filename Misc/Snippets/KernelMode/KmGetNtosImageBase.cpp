@@ -172,7 +172,7 @@ PVOID GetNtosImageBase5()
 PVOID GetNtosImageBase6()
 {
 
-	PKLDR_DATA_TABLE_ENTRY KldrEntry = nullptr, CurrentKldrEntry;
+	PKLDR_DATA_TABLE_ENTRY CurrentKldrEntry;
 
 	PLIST_ENTRY PsLoadedModuleList;
 
