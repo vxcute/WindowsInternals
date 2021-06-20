@@ -175,9 +175,9 @@ PVOID GetNtosImageBase6()
 
 	PLIST_ENTRY PsLoadedModuleList;
 
-	UNICODE_STRING UNtModName;
+	UNICODE_STRING NtModName;
 
-	RtlInitUnicodeString(&UNtModName, L"ntoskrnl.exe");
+	RtlInitUnicodeString(&NtModName, L"ntoskrnl.exe");
 
 	PsLoadedModuleList = GetKernelExport<PLIST_ENTRY>(L"PsLoadedModuleList");
 
@@ -185,7 +185,7 @@ PVOID GetNtosImageBase6()
 
 	while ((PLIST_ENTRY)CurrentKldrEntry != PsLoadedModuleList)
 	{
-		if (!RtlCompareUnicodeString(&CurrentKldrEntry->BaseDllName, &UNtModName, true))
+		if (!RtlCompareUnicodeString(&CurrentKldrEntry->BaseDllName, &NtModName, true))
 		{
 			return CurrentKldrEntry->DllBase;
 		}
