@@ -48,7 +48,7 @@ auto GetNtosImageBase2() -> PVOID
 	__except(1){}
 }
 
-PVOID GetNtosImageBase()
+PVOID GetNtosImageBase3()
 {
 	__try
 	{
