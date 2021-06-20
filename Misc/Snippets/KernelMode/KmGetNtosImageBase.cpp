@@ -182,7 +182,7 @@ PVOID GetNtosImageBase6()
 
 	PsLoadedModuleList = GetKernelExport<PLIST_ENTRY>(L"PsLoadedModuleList");
 
-	CurrentKldrEntry = reinterpret_cast<PKLDR_DATA_TABLE_ENTRY>(PsLoadedModuleList->Flink);
+	CurrentKldrEntry = (PKLDR_DATA_TABLE_ENTRY)PsLoadedModuleList->Flink;
 
 	while ((PLIST_ENTRY)CurrentKldrEntry != PsLoadedModuleList)
 	{
