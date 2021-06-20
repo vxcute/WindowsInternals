@@ -17,9 +17,13 @@ T GetKernelExport(PCWSTR zExportName)
 		T RoutineAddress = (T)MmGetSystemRoutineAddress(&ExportName);
 
 		if (RoutineAddress)
-			return RoutineAddress;
+		{
+		    return RoutineAddress;
+		}
+		
 		return T();
 	}
+	
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
@@ -40,16 +44,16 @@ PVOID GetNtosImageBase1()
 		if (ModInfo)
 		{
 
-			if (NT_SUCCESS(ZwQuerySystemInformation(SystemModuleInformation, ModInfo, POOL_SIZE, nullptr)))
-			{
-				NtImageBase = ModInfo->Module[0].ImageBase;
-
-				if (NtImageBase)
-				{
-					ExFreePool(ModInfo);
-					return NtImageBase;
-				}
-			}
+		     if (NT_SUCCESS(ZwQuerySystemInformation(SystemModuleInformation, ModInfo, POOL_SIZE, nullptr)))
+		     {
+		     	  NtImageBase = ModInfo->Module[0].ImageBase;     
+			     
+		     	  if (NtImageBase)
+		     	  {
+		     	  	ExFreePool(ModInfo);
+		     	  	return NtImageBase;
+		     	  }
+		     }
 		}
 
 		ExFreePool(ModInfo);
@@ -72,10 +76,13 @@ PVOID GetNtosImageBase2()
 		RtlLookupFunctionEntry((DWORD64)&MmCopyMemory, &NtosImageBase, nullptr);
 
 		if (NtosImageBase)
-			return (PVOID)NtosImageBase;
+		{
+		    return (PVOID)NtosImageBase;
+		}
 
 		return nullptr;
 	}
+	
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
@@ -92,10 +99,13 @@ PVOID GetNtosImageBase3()
 		RtlPcToFileHeader(&MmCopyMemory, &NtosImageBase);
 
 		if (NtosImageBase)
-			return NtosImageBase;
-
+		{
+		    return NtosImageBase;
+		}
+		
 		return nullptr;
 	}
+	
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
