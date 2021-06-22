@@ -41,21 +41,22 @@ CONST FLT_OPERATION_REGISTRATION CallBacks[]
     { IRP_MJ_OPERATION_END }
 };
 
+
 CONST FLT_REGISTRATION FilterRegistration =
 {
     sizeof(FLT_REGISTRATION),      
     FLT_REGISTRATION_VERSION,      
     0,                             
-    NULL,                          
+    nullptr,
     CallBacks,                     
     FltrUnload,                    
     FltrSetupCallback,             
     FltrTearDownCallback,          
-    NULL,                          
-    NULL,                          
-    NULL,                          
-    NULL,                          
-    NULL                           
+    nullptr,                  
+    nullptr,                  
+    nullptr,                  
+    nullptr,                  
+    nullptr                 
 }; 
 
 NTSTATUS FLTAPI DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
