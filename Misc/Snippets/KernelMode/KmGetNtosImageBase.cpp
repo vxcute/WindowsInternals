@@ -99,7 +99,11 @@ PVOID GetNtosImageBase4()
 {
 	__try
 	{
-		PIDT_ENTRY IdtBase = (PIDT_ENTRY)KeGetPcr()->IdtBase;
+		_KSPECIAL_REGISTERS SpecialRegisters;
+
+		__sidt(&SpecialRegisters.Idtr.Limit);
+
+		PIDT_ENTRY IdtBase = (PIDT_ENTRY)SpecialRegisters.Idtr.Base;
 
 		auto Page = (uintptr_t)IdtBase[0].InterruptServiceRoutine & ~0xfff;
 
