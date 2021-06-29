@@ -1,11 +1,11 @@
 #include <ntddk.h>
 #include <nt.hpp>
 
-#define PROCESS_TERMINATE       0x0001
-#define PROCESS_VM_OPERATION    0x0008
-#define PROCESS_VM_READ         0x0010
-#define PROCESS_VM_WRITE        0x0020
-
+#define PROCESS_TERMINATE			 0x0001
+#define PROCESS_VM_OPERATION	     0x0008
+#define PROCESS_VM_READ              0x0010
+#define PROCESS_VM_WRITE			 0x0020
+#define PROCESS_SUSPEND_RESUME		 0x0800
 
 typedef NTSTATUS(NTAPI* _PsLookupProcessByProcessId)(
 	IN HANDLE ProcessID, 
@@ -42,7 +42,6 @@ ExportType GetKernelExport(
 	IN PCWSTR zExportName
 );
 
-
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
 {
 	UNREFERENCED_PARAMETER(RegistryPath);
@@ -55,7 +54,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
 
 	OB_OPERATION_REGISTRATION ObOperationRegistration = { PsProcessType, OB_OPERATION_HANDLE_CREATE, ObPreCallback , ObPostCallback };
 	
-	OB_CALLBACK_REGISTRATION ObCallbackRegistration = { OB_FLT_REGISTRATION_VERSION, 1,  Altitude, nullptr, &ObOperationRegistration};
+	OB_CALLBACK_REGISTRATION ObCallbackRegistration = { OB_FLT_REGISTRATION_VERSION, 1,  Altitude, nullptr, &ObOperationRegistration };
 
 	Status = ObRegisterCallbacks(&ObCallbackRegistration, &ObRegistrationHandle);
 
@@ -81,6 +80,7 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
 	if (ObRegistrationHandle != nullptr)
 	{
 		ObUnRegisterCallbacks(ObRegistrationHandle);
+		DbgPrint("Unregistered Callbacks");
 	}
 
 	else
@@ -95,7 +95,7 @@ OB_PREOP_CALLBACK_STATUS ObPreCallback(IN PVOID ObRegistrationContext, IN POB_PR
 
 	PCSTR ProcessName = GetProcessNameById(PsGetProcessId((_PEPROCESS)PreOpInformation->Object));
 
-	if (!strcmp(ProcessName, "notepad.exe"))
+	if (!strcmp(ProcessName, "OSRLOADER.exe"))
 	{
 		if (PreOpInformation->Operation == OB_OPERATION_HANDLE_CREATE)
 		{
@@ -117,6 +117,16 @@ OB_PREOP_CALLBACK_STATUS ObPreCallback(IN PVOID ObRegistrationContext, IN POB_PR
 			if ((PreOpInformation->Parameters->CreateHandleInformation.OriginalDesiredAccess & PROCESS_VM_OPERATION) == PROCESS_VM_OPERATION)
 			{
 				PreOpInformation->Parameters->CreateHandleInformation.DesiredAccess &= ~PROCESS_VM_OPERATION;
+			}
+
+			if ((PreOpInformation->Parameters->CreateHandleInformation.OriginalDesiredAccess & PROCESS_ALL_ACCESS) == PROCESS_ALL_ACCESS)
+			{
+				PreOpInformation->Parameters->CreateHandleInformation.DesiredAccess &= ~PROCESS_ALL_ACCESS;
+			}
+
+			if ((PreOpInformation->Parameters->CreateHandleInformation.OriginalDesiredAccess & PROCESS_SUSPEND_RESUME) == PROCESS_SUSPEND_RESUME)
+			{
+				PreOpInformation->Parameters->CreateHandleInformation.DesiredAccess &= ~PROCESS_SUSPEND_RESUME;
 			}
 		}
 	}
