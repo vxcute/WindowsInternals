@@ -1,11 +1,11 @@
 #include <ntddk.h>
 #include <nt.hpp>
 
-#define PROCESS_TERMINATE			 0x0001
+#define PROCESS_TERMINATE	     0x0001
 #define PROCESS_VM_OPERATION	     0x0008
 #define PROCESS_VM_READ              0x0010
-#define PROCESS_VM_WRITE			 0x0020
-#define PROCESS_SUSPEND_RESUME		 0x0800
+#define PROCESS_VM_WRITE	     0x0020
+#define PROCESS_SUSPEND_RESUME	     0x0800
 
 typedef NTSTATUS(NTAPI* _PsLookupProcessByProcessId)(
 	IN HANDLE ProcessID, 
