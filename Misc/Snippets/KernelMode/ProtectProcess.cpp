@@ -119,11 +119,6 @@ OB_PREOP_CALLBACK_STATUS ObPreCallback(IN PVOID ObRegistrationContext, IN POB_PR
 				PreOpInformation->Parameters->CreateHandleInformation.DesiredAccess &= ~PROCESS_VM_OPERATION;
 			}
 
-			if ((PreOpInformation->Parameters->CreateHandleInformation.OriginalDesiredAccess & PROCESS_ALL_ACCESS) == PROCESS_ALL_ACCESS)
-			{
-				PreOpInformation->Parameters->CreateHandleInformation.DesiredAccess &= ~PROCESS_ALL_ACCESS;
-			}
-
 			if ((PreOpInformation->Parameters->CreateHandleInformation.OriginalDesiredAccess & PROCESS_SUSPEND_RESUME) == PROCESS_SUSPEND_RESUME)
 			{
 				PreOpInformation->Parameters->CreateHandleInformation.DesiredAccess &= ~PROCESS_SUSPEND_RESUME;
