@@ -2,7 +2,8 @@
 #include <nt.hpp> 
 
 NTSTATUS DriverEntry(
-  IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath
+  IN PDRIVER_OBJECT DriverObject, 
+  IN PUNICODE_STRING RegistryPath
 );
 
 VOID Unload(
