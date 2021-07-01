@@ -24,7 +24,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
 	return STATUS_SUCCESS;
 }
 
-VOID Unload(_In_ PDRIVER_OBJECT DriverObject)
+VOID Unload(IN PDRIVER_OBJECT DriverObject)
 {
 	UNREFERENCED_PARAMETER(DriverObject);
 	DbgPrint("Driver Unloaded ...");
