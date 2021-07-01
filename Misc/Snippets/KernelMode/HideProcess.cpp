@@ -10,7 +10,7 @@ VOID Unload(
 );
 
 VOID HideProcess(
-  PCSTR ProcessName
+  IN PCSTR ProcessName
 ); 
 
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
@@ -30,7 +30,7 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
 	DbgPrint("Driver Unloaded ...");
 }
 
-VOID HideProcess(PCSTR ProcessName)
+VOID HideProcess(IN PCSTR ProcessName)
 {
 	_PEPROCESS CurrentProcess = nullptr;
 
