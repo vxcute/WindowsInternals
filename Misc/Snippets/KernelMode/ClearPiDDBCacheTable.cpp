@@ -205,16 +205,16 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
 bool LocatePiDDB(OUT PERESOURCE* PiDDBLock, OUT PRTL_AVL_TABLE* PiDDBCacheTable)
 {
 	PVOID* PiDDBLockPtr = nullptr, PiDDBCacheTablePtr = nullptr;
-	UCHAR PiDDBLockPtrPattern[] = "\x48\x8D\x0D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x4C\x8B\x8C";
-	UCHAR PiDDBCacheTablePtrPattern[] = "\x66\x03\xD2\x48\x8D\x0D";
+	UCHAR PiDDBLockPattern[] = "\x48\x8D\x0D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x4C\x8B\x8C";
+	UCHAR PiDDBCacheTablePattern[] = "\x66\x03\xD2\x48\x8D\x0D";
 
-	if (!NT_SUCCESS(ScanSection("PAGE", PiDDBLockPtrPattern, 0, (PVOID*)(&PiDDBLockPtr))))
+	if (!NT_SUCCESS(ScanSection("PAGE", PiDDBLockPattern, 0, (PVOID*)(&PiDDBLockPtr))))
 	{
 		DbgPrint("Unable To Locate PiDDBLock");
 		return false;
 	}
 
-	if (!NT_SUCCESS(ScanSection("PAGE", PiDDBCacheTablePtrPattern, 0, (PVOID*)(&PiDDBCacheTablePtr))))
+	if (!NT_SUCCESS(ScanSection("PAGE", PiDDBCacheTablePattern, 0, (PVOID*)(&PiDDBCacheTablePtr))))
 	{
 		DbgPrint("Unable To Locate PiDDBCacheTable");
 		return false;
