@@ -187,10 +187,6 @@ typedef struct _IMAGE_SECTION_HEADER
 
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
 {
-	PERESOURCE Lock;
-
-	PRTL_AVL_TABLE Table;
-
 	UNREFERENCED_PARAMETER(RegistryPath);
 
 	DriverObject->DriverUnload = Unload;
