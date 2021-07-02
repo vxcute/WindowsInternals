@@ -1,5 +1,11 @@
-// ready to paste code that's all 
-// credits: https://www.unknowncheats.me/forum/anti-cheat-bypass/324665-clearing-piddbcachetable.html
+/*
+      ready to paste code that's all 
+      
+      credits: 
+	  . https://www.unknowncheats.me/forum/anti-cheat-bypass/324665-clearing-piddbcachetable.html
+	  . BlackBone: (SearchPattern and ScanSection Functions) 
+	  . LocatePiDDB: https://github.com/ApexLegendsUC/anti-cheat-emulator/blob/9e53bb4a329e0286ff4f237c5ded149d53b0dd56/Source.cpp#L588
+*/ 
 
 #include <ntddk.h>
 #include <intrin.h>
@@ -10,7 +16,7 @@
 
 typedef PIMAGE_NT_HEADERS(NTAPI* _RtlImageNtHeader)(
 	IN PVOID ModuleAddress
-	);
+);
 
 NTSTATUS DriverEntry(
 	IN PDRIVER_OBJECT DriverObject,
@@ -153,7 +159,8 @@ typedef struct _IMAGE_OPTIONAL_HEADER64
 	IMAGE_DATA_DIRECTORY DataDirectory[16];
 } IMAGE_OPTIONAL_HEADER64, * PIMAGE_OPTIONAL_HEADER64;
 
-typedef struct _IMAGE_NT_HEADERS64 {
+typedef struct _IMAGE_NT_HEADERS64 
+{
 	ULONG                   Signature;
 	IMAGE_FILE_HEADER       FileHeader;
 	IMAGE_OPTIONAL_HEADER64 OptionalHeader;
@@ -196,9 +203,6 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
 	UNREFERENCED_PARAMETER(DriverObject);
 	DbgPrint("Driver Unloaded ...");
 }
-
-// from https://github.com/ApexLegendsUC/anti-cheat-emulator/blob/9e53bb4a329e0286ff4f237c5ded149d53b0dd56/Source.cpp#L588
-// I just edited it a little 
 
 bool LocatePiDDB(OUT PERESOURCE* PiDDBLock, OUT PRTL_AVL_TABLE* PiDDBCacheTable)
 {
@@ -264,8 +268,6 @@ bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 
 	return true;
 }
-
-// credits to blackbone for SearchPattern and ScanSection functions I just edited them a little 
 
 NTSTATUS SearchPattern(IN PCUCHAR Pattern, IN UCHAR WildCard, IN PVOID Base, IN ULONG_PTR Size, OUT PVOID* Found, int Index)
 {
