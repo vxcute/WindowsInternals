@@ -72,7 +72,7 @@ ExportType GetKernelExport(
 typedef struct PiDDBCacheEntry
 {
 	LIST_ENTRY		List;
-	UNICODE_STRING	DriverName;
+	UNICODE_STRING	        DriverName;
 	ULONG			TimeDateStamp;
 	NTSTATUS		LoadStatus;
 	CHAR			SomeValue[16];
