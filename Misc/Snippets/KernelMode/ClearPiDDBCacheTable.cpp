@@ -170,7 +170,8 @@ typedef struct _IMAGE_NT_HEADERS64
 typedef struct _IMAGE_SECTION_HEADER 
 {
 	char  Name[8];
-	union {
+	union 
+	{
 		ULONG PhysicalAddress;
 		ULONG VirtualSize;
 	} Misc;
