@@ -64,7 +64,7 @@ PVOID GetNtosImageBase(
 	VOID
 );
 
-template<class ExportType>
+template <class ExportType>
 ExportType GetKernelExport(
 	PCWSTR zExportName
 );
@@ -380,7 +380,7 @@ PVOID ResolveRelativeAddress(
 	return ResolvedAddress;
 }
 
-template<class ExportType>
+template <class ExportType>
 ExportType GetKernelExport(PCWSTR zExportName)
 {
 	__try
