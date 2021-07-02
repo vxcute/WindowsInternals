@@ -235,8 +235,8 @@ bool LocatePiDDB(OUT PERESOURCE* PiDDBLock, OUT PRTL_AVL_TABLE* PiDDBCacheTable)
 
 bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 {
-	PERESOURCE PiDDBLock; PRTL_AVL_TABLE PiDDBCacheTable;
-
+	PERESOURCE PiDDBLock = nullptr; 
+	PRTL_AVL_TABLE PiDDBCacheTable = nullptr; 
 	_PiDDBCacheEntry PiDDBCacheEntry = { 0 };
 
 	LocatePiDDB(&PiDDBLock, &PiDDBCacheTable);
