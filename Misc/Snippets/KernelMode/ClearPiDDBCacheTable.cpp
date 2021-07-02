@@ -1,7 +1,8 @@
 /*
       ready to paste code that's all 
       
-      credits: 
+      credits (I referenced this code with some small modifications) 
+      
 	  . https://www.unknowncheats.me/forum/anti-cheat-bypass/324665-clearing-piddbcachetable.html
 	  . BlackBone: (SearchPattern and ScanSection Functions) 
 	  . LocatePiDDB: https://github.com/ApexLegendsUC/anti-cheat-emulator/blob/9e53bb4a329e0286ff4f237c5ded149d53b0dd56/Source.cpp#L588
