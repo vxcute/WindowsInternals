@@ -367,12 +367,7 @@ NTSTATUS ScanSection(IN PCCHAR SectionName, IN PCUCHAR Pattern, IN UCHAR Wildcar
 	return STATUS_ACCESS_DENIED;
 }
 
-PVOID ResolveRelativeAddress(
-	IN PVOID Instruction,
-	IN ULONG  Offset,
-	IN ULONG InstructionSize
-)
-
+PVOID ResolveRelativeAddress(IN PVOID Instruction, IN ULONG  Offset, IN ULONG InstructionSize)
 {
 	ULONG_PTR xInstruction = (ULONG_PTR)Instruction;
 	LONG RipOffset = *(PLONG)(xInstruction + Offset);
