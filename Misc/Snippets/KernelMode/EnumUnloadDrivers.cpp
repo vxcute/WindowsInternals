@@ -109,7 +109,7 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
     DbgPrint("Driver Unloaded ...");
 }
 
-template<class ExportType>
+template <class ExportType>
 ExportType GetKernelExport(PCWSTR zExportName)
 {
     __try
