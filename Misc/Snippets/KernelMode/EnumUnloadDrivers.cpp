@@ -76,7 +76,7 @@ ExportType GetKernelExport(
     IN PCWSTR zExportName
 );
 
-bool GetNtosInfo(
+bool GetSysModInfo(
     PSYSTEM_MODULE_INFORMATION& SystemModInfo
 );
 
@@ -132,7 +132,7 @@ NTSTATUS ExposeKernelData(VOID)
 
     PVOID MmUnloadedDriversInstr, MmLastUnloadedDriverInstr;
 
-    GetNtosInfo(SystemModInfo);
+    GetSysModInfo(SystemModInfo);
 
     NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
@@ -166,7 +166,7 @@ VOID EnumUnloadedDrivers()
     }
 }
 
-bool GetNtosInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
+bool GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
     __try
     {
