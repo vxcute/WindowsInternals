@@ -130,7 +130,7 @@ NTSTATUS ExposeKernelData(VOID)
 {
     PSYSTEM_MODULE_INFORMATION SystemModInfo;
 
-    PVOID* MmUnloadedDriversInstr, MmLastUnloadedDriverInstr;
+    PVOID MmUnloadedDriversInstr, MmLastUnloadedDriverInstr;
 
     GetNtosInfo(SystemModInfo);
 
@@ -140,9 +140,9 @@ NTSTATUS ExposeKernelData(VOID)
 
     UCHAR MmLastUnloadedDriverPattern[] = "\x8B\x05\x00\x00\x00\x00\x83\xF8\x32";
 
-    FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmUnloadedDriversPattern, "xxx????xxx", (PVOID*)&MmUnloadedDriversInstr);
+    FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmUnloadedDriversPattern, "xxx????xxx", &MmUnloadedDriversInstr);
 
-    FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmLastUnloadedDriverPattern, "xx????xxx", (PVOID*)&MmLastUnloadedDriverInstr);
+    FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmLastUnloadedDriverPattern, "xx????xxx", &MmLastUnloadedDriverInstr);
 
     Resolve(MmUnloadedDriversInstr, 3, 4, (PVOID*)&pMmUnloadedDrivers);
     
