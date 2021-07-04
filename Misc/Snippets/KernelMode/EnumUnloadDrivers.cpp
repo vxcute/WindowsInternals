@@ -63,12 +63,12 @@ bool FindPattern(
     OUT PVOID* Found
 );
 
-
+template <class T>
 VOID Resolve(
     IN PVOID InstructionAddress,
     IN INT OpcodeBytes,
     IN INT AddressBytes,
-    OUT PVOID* Found
+    OUT T* Found
 );
 
 template <class ExportType>
@@ -109,7 +109,7 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
     DbgPrint("Driver Unloaded ...");
 }
 
-template <class ExportType>
+template<class ExportType>
 ExportType GetKernelExport(PCWSTR zExportName)
 {
     __try
@@ -156,9 +156,9 @@ bool ExposeKernelData(VOID)
         return false;
     }
 
-    Resolve(MmUnloadedDriversInstr, 3, 4, (PVOID*)&pMmUnloadedDrivers);
+    Resolve<PMM_UNLOADED_DRIVER>(MmUnloadedDriversInstr, 3, 4, &pMmUnloadedDrivers);
 
-    Resolve(MmLastUnloadedDriverInstr, 2, 4, (PVOID*)&pMmLastUnloadedDriver);
+    Resolve<PULONG>(MmLastUnloadedDriverInstr, 2, 4, &pMmLastUnloadedDriver);
 
     return STATUS_SUCCESS;
 }
@@ -230,10 +230,11 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
     return false;
 }
 
-VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT PVOID* Found)
+template <class T>
+VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T* Found)
 {
     ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
     AddressBytes += OpcodeBytes;
     ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
-    *Found = (PVOID)(InstructionAddr + RelativeOffset + AddressBytes);
+    *Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
 }
