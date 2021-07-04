@@ -63,7 +63,6 @@ bool FindPattern(
     OUT PVOID* Found
 );
 
-
 VOID Resolve(
     IN PVOID InstructionAddress,
     IN INT OpcodeBytes,
@@ -76,18 +75,16 @@ ExportType GetKernelExport(
     IN PCWSTR zExportName
 );
 
-bool GetSysModInfo(
+NTSTATUS GetSysModInfo(
     PSYSTEM_MODULE_INFORMATION& SystemModInfo
 );
 
-typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)
-(
+typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)(
     _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
     _Inout_   PVOID                    SystemInformation,
     _In_      ULONG                    SystemInformationLength,
     _Out_opt_ PULONG                   ReturnLength
-    );
-
+);
 
 PMM_UNLOADED_DRIVER pMmUnloadedDrivers;
 PULONG pMmLastUnloadedDriver;
@@ -132,8 +129,12 @@ NTSTATUS ExposeKernelData(VOID)
 
     PVOID MmUnloadedDriversInstr, MmLastUnloadedDriverInstr;
 
-    GetSysModInfo(SystemModInfo);
-
+    if (!NT_SUCCESS(GetSysModInfo(SystemModInfo)))
+    {
+        DbgPrint("Failed to query system module information");
+        return STATUS_UNSUCCESSFUL;
+    }
+    
     NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
     UCHAR MmUnloadedDriversPattern[] = "\x4C\x8B\x15\x00\x00\x00\x00\x4C\x8B\xC9";
@@ -166,7 +167,7 @@ VOID EnumUnloadedDrivers()
     }
 }
 
-bool GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
+NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
     __try
     {
@@ -180,12 +181,12 @@ bool GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 
             if (NT_SUCCESS(Status))
             {
-                return true;
+                return STATUS_SUCCESS;
             }
         }
 
         ExFreePoolWithTag(SystemModInfo, POOL_TAG);
-        return false;
+        return STATUS_UNSUCCESSFUL;
     }
 
     __except (EXCEPTION_EXECUTE_HANDLER) {}
