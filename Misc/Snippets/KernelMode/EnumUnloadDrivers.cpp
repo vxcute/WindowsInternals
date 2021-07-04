@@ -139,11 +139,19 @@ NTSTATUS ExposeKernelData(VOID)
 
     UCHAR MmUnloadedDriversPattern[] = "\x4C\x8B\x15\x00\x00\x00\x00\x4C\x8B\xC9";
 
-    UCHAR MmLastUnloadedDriverPattern[] = "\x8B\x05\x00\x00\x00\x00\x83\xF8\x32";
+    UCHAR MmLastUnloadedDriverPattern[] = "\x8B\x05\x00\x00\x00\x00\x83\xF8\x32"; 
+    
+    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmUnloadedDriversPattern, "xxx????xxx", &MmUnloadedDriversInstr))
+    {
+        DbgPrint("Failed to get MmUnloadedDrivers");
+        return STATUS_UNSUCCESSFUL;
+    }
 
-    FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmUnloadedDriversPattern, "xxx????xxx", &MmUnloadedDriversInstr);
-
-    FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmLastUnloadedDriverPattern, "xx????xxx", &MmLastUnloadedDriverInstr);
+    if (FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmLastUnloadedDriverPattern, "xx????xxx", &MmLastUnloadedDriverInstr))
+    {
+        DbgPrint("Failed to get MmLastUnloadedDriver");
+        return STATUS_UNSUCCESSFUL;
+    }
 
     Resolve(MmUnloadedDriversInstr, 3, 4, (PVOID*)&pMmUnloadedDrivers);
     
