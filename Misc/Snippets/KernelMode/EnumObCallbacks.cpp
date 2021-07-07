@@ -25,12 +25,12 @@ typedef struct _OB_CALLBACK
 } OB_CALLBACK, * POB_CALLBACK;
 
 NTSTATUS DriverEntry(
-    IN PDRIVER_OBJECT DriverObject,
-    IN PUNICODE_STRING RegistryPath
+    PDRIVER_OBJECT DriverObject,
+    PUNICODE_STRING RegistryPath
 );
 
 VOID Unload(
-    IN PDRIVER_OBJECT DriverObject
+    PDRIVER_OBJECT DriverObject
 );
 
 VOID EnumObCallbacks(
@@ -42,7 +42,7 @@ VOID LocateCallbackListHeads(
   PLIST_ENTRY& ObThreadCallbackListHead
 ); 
 
-NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
     UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -53,7 +53,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
     return STATUS_SUCCESS;
 }
 
-VOID Unload(IN PDRIVER_OBJECT DriverObject)
+VOID Unload(PDRIVER_OBJECT DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
     DbgPrint("Driver Unloaded ...");
@@ -107,33 +107,29 @@ VOID LocateCallbackListHeads(PLIST_ENTRY& ObProcessCallbackListHead, PLIST_ENTRY
 {
     POBJECT_TYPE ProcessType = *PsProcessType;
 
-    __try
+    if (ProcessType && MmIsAddressValid((PVOID)ProcessType))
     {
-        if (ProcessType && MmIsAddressValid((PVOID)ProcessType))
+        for (auto i = 0xF8; i > 0x0; i -= 0x8)
         {
-            for (auto i = 0xF8; i > 0x0; i -= 0x8)
+            UINT64 First = *(UINT64*)((UINT64)ProcessType + i); 
+            UINT64 Second = *(UINT64*)((UINT64)ProcessType + (i + 0x8));
+
+            if (First && MmIsAddressValid((PVOID)First) && Second && MmIsAddressValid((PVOID)Second))
             {
-                UINT64 First = *(UINT64*)((UINT64)ProcessType + i); 
-                UINT64 Second = *(UINT64*)((UINT64)ProcessType + (i + 0x8));
+                UINT64 Test1First = *(UINT64*)(First + 0x0); 
+                UINT64 Test1Second = *(UINT64*)(First + 0x8);
 
-                if (First && MmIsAddressValid((PVOID)First) && Second && MmIsAddressValid((PVOID)Second))
+                if (Test1First && MmIsAddressValid((PVOID)Test1First) && Test1Second && MmIsAddressValid((PVOID)Test1Second))
                 {
-                    UINT64 Test1First = *(UINT64*)(First + 0x0); 
-                    UINT64 Test1Second = *(UINT64*)(First + 0x8);
+                    UINT64 TestObjectType = *(UINT64*)(First + 0x20);
 
-                    if (Test1First && MmIsAddressValid((PVOID)Test1First) && Test1Second && MmIsAddressValid((PVOID)Test1Second))
+                    if (TestObjectType == (UINT64)ProcessType)
                     {
-                        UINT64 TestObjectType = *(UINT64*)(First + 0x20);
-
-                        if (TestObjectType == (UINT64)ProcessType)
-                        {
-                            ObProcessCallbackListHead = (PLIST_ENTRY)(*(UINT64*)PsProcessType + i);
-                            ObThreadCallbackListHead = (PLIST_ENTRY)(*(UINT64*)PsThreadType + i);
-                        }
+                        ObProcessCallbackListHead = (PLIST_ENTRY)(*(UINT64*)PsProcessType + i);
+                        ObThreadCallbackListHead = (PLIST_ENTRY)(*(UINT64*)PsThreadType + i);
                     }
                 }
             }
         }
     }
-    __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
