@@ -2,39 +2,36 @@
 #include <nt.hpp>
 
 NTSTATUS DriverEntry(
-	IN PDRIVER_OBJECT DriverObject, 
-	IN PUNICODE_STRING RegPath
+	 PDRIVER_OBJECT DriverObject, 
+	 PUNICODE_STRING RegPath
 );
 
 VOID Unload(
-	IN PDRIVER_OBJECT DriverObject
+	PDRIVER_OBJECT DriverObject
 );
 
-template <class ExportType>
+template <typename ExportType>
 ExportType GetKernelExport(
 	PCWSTR zExportName
 );
 
-VOID LogImages
-(
-	_In_opt_ PUNICODE_STRING FullImageName,
-	_In_ HANDLE ProcessId,
-	_In_ PIMAGE_INFO ImageInfo
+VOID LogImages(
+	 PUNICODE_STRING FullImageName,
+	 HANDLE ProcessId,
+	 PIMAGE_INFO ImageInfo
 );
 
-VOID LogProcesses
-(
-	_In_ HANDLE ParentId,
-	_In_ HANDLE ProcessId,
-	_In_ BOOLEAN Create
+VOID LogProcesses(
+	HANDLE ParentId,
+	HANDLE ProcessId,
+	BOOLEAN Create
 );
 
 
-VOID LogThreads
-(
-	_In_ HANDLE ProcessId,
-	_In_ HANDLE ThreadId,
-	_In_ BOOLEAN Create
+VOID LogThreads(
+	 HANDLE ProcessId,
+	 HANDLE ThreadId,
+	 BOOLEAN Create
 );
 
 typedef PCSTR (NTAPI *_PsGetProcessImageFileName)(
@@ -42,15 +39,11 @@ typedef PCSTR (NTAPI *_PsGetProcessImageFileName)(
 );
 
 typedef NTSTATUS (NTAPI* _PsLookupProcessByProcessId)(
-	HANDLE    ProcessId,
-	PEPROCESS* Process
+	 HANDLE    ProcessId,
+	 PEPROCESS* Process
 );
 
-NTSTATUS DriverEntry(
-	IN PDRIVER_OBJECT DriverObject,
-	IN PUNICODE_STRING RegPath
-)
-
+NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegPath)
 {
 	UNREFERENCED_PARAMETER(RegPath);
 
@@ -65,23 +58,14 @@ NTSTATUS DriverEntry(
 	return STATUS_SUCCESS;
 }
 
-VOID Unload(
-	IN PDRIVER_OBJECT DriverObject
-)
-
+VOID Unload(PDRIVER_OBJECT DriverObject)
 {
 	UNREFERENCED_PARAMETER(DriverObject);
 	PsRemoveLoadImageNotifyRoutine(LogImages);
 	PsRemoveCreateThreadNotifyRoutine(LogThreads);
 }
 
-VOID LogImages
-(
-	_In_opt_ PUNICODE_STRING FullImageName,
-	_In_ HANDLE ProcessId,                
-	_In_ PIMAGE_INFO ImageInfo
-)
-
+VOID LogImages(PUNICODE_STRING FullImageName, HANDLE ProcessId, PIMAGE_INFO ImageInfo)
 {
 	_PEPROCESS Process = nullptr;
 
@@ -102,12 +86,7 @@ VOID LogImages
 	}
 }
 
-VOID LogProcesses
-(
-	_In_ HANDLE ParentId,
-	_In_ HANDLE ProcessId,
-	_In_ BOOLEAN Create
-)
+VOID LogProcesses(HANDLE ParentId, HANDLE ProcessId, BOOLEAN Create)
 
 {
 	_PEPROCESS ParentProcess = nullptr, ChildProcess = nullptr;
@@ -133,13 +112,7 @@ VOID LogProcesses
 	}
 }
 
-VOID LogThreads
-(
-	_In_ HANDLE ProcessId,
-	_In_ HANDLE ThreadId,
-	_In_ BOOLEAN Create
-)
-
+VOID LogThreads(HANDLE ProcessId, HANDLE ThreadId, BOOLEAN Create)
 {
 	_PEPROCESS Process = nullptr;
 
@@ -162,19 +135,14 @@ VOID LogThreads
 	}
 }
 
-template <class ExportType>
+template <typename ExportType>
 ExportType GetKernelExport(PCWSTR zExportName)
 {
-	__try
-	{
-		UNICODE_STRING UExportName;
+	UNICODE_STRING UExportName;
 
-		RtlInitUnicodeString(&UExportName, zExportName);
+	RtlInitUnicodeString(&UExportName, zExportName);
 
-		ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
+	ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
 
-		return ExportAddress ? ExportAddress : ExportType();
-	}
-
-	__except (EXCEPTION_EXECUTE_HANDLER) {}
+	return ExportAddress ? ExportAddress : ExportType(nullptr);
 }
