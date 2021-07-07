@@ -32,7 +32,7 @@ typedef struct _HANDLE_TABLE_FREE_LIST
     union _HANDLE_TABLE_ENTRY* LastFreeHandleEntry;                       
     LONG HandleCount;                                                     
     ULONG HighWaterMark;                                                  
-}_HANDLE_TABLE_FREE_LIST, * PHANDLE_TABLE_FREE_LIST;
+}_HANDLE_TABLE_FREE_LIST, * _PHANDLE_TABLE_FREE_LIST;
 
 typedef struct _HANDLE_TABLE
 {
@@ -126,24 +126,24 @@ typedef struct _SYSTEM_MODULE_INFORMATION
     SYSTEM_MODULE_ENTRY Module[1];
 } SYSTEM_MODULE_INFORMATION, * PSYSTEM_MODULE_INFORMATION;
 
-typedef struct _NtosInfo
+struct NtosInfo
 {
     PVOID ImageBase;
     ULONG64 ImageSize;
-}NtosInfo, *PNtosInfo;
+};
 
 typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)(
     _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
     _Inout_   PVOID                    SystemInformation,
     _In_      ULONG                    SystemInformationLength,
     _Out_opt_ PULONG                   ReturnLength
-);
+    );
 
 typedef BOOLEAN(NTAPI* _ExDestroyHandle)(
     IN PHANDLE_TABLE HandleTable,
     IN HANDLE Handle,
     IN _HANDLE_TABLE_ENTRY* CidEntry
-);
+    );
 
 typedef PHANDLE_TABLE* PPHANDLE_TABLE;
 
@@ -199,7 +199,8 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
     UNREFERENCED_PARAMETER(RegistryPath);
 
     RemoveThread(PsGetCurrentThreadId()) ? DbgPrint("Removed Thread From PspCidTable") : DbgPrint("Failed to remove thread from PspCidTable");
-    
+       
+
     DriverObject->DriverUnload = Unload;
 
     return STATUS_SUCCESS;
@@ -275,25 +276,22 @@ PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(PHANDLE_TABLE HandleTable, HANDLE 
         v5 = *(UINT64*)(*(UINT64*)(v3 + 8 * (v2 >> 19) - 2) + 8 * ((v2 >> 10) & 0x1FF));
         return (PHANDLE_TABLE_ENTRY)(v5 + 4 * (v2 & 0x3FF));
     }
-    
     return (PHANDLE_TABLE_ENTRY)(v3 + 4 * v2);
 }
 
 bool RemoveThread(IN HANDLE ThreadId)
 {
-    PPHANDLE_TABLE PspCidTable = nullptr;
-    _ExDestroyHandle ExDestroyHandle = nullptr;
-    PHANDLE_TABLE HandleTable = nullptr; 
-    PHANDLE_TABLE_ENTRY CidEntry = nullptr; 
+    PPHANDLE_TABLE PspCidTable;
+    _ExDestroyHandle ExDestroyHandle;
 
     if (!LocateData(PspCidTable, ExDestroyHandle))
     {
         return false;
     }
 
-    HandleTable = (PHANDLE_TABLE)(*PspCidTable);
+    PHANDLE_TABLE HandleTable = (PHANDLE_TABLE)(*PspCidTable);
 
-    CidEntry = ExpLookupHandleTableEntry(HandleTable, ThreadId);
+    PHANDLE_TABLE_ENTRY CidEntry = ExpLookupHandleTableEntry(HandleTable, ThreadId);
 
     if (CidEntry)
     {
@@ -301,8 +299,6 @@ bool RemoveThread(IN HANDLE ThreadId)
 
         return CidEntry->ObjectPointerBits == NULL;
     }
-    
-    return false; 
 }
 
 template <class ExportType>
