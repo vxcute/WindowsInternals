@@ -199,8 +199,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
     UNREFERENCED_PARAMETER(RegistryPath);
 
     RemoveThread(PsGetCurrentThreadId()) ? DbgPrint("Removed Thread From PspCidTable") : DbgPrint("Failed to remove thread from PspCidTable");
-       
-
+    
     DriverObject->DriverUnload = Unload;
 
     return STATUS_SUCCESS;
@@ -281,17 +280,19 @@ PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(PHANDLE_TABLE HandleTable, HANDLE 
 
 bool RemoveThread(IN HANDLE ThreadId)
 {
-    PPHANDLE_TABLE PspCidTable;
-    _ExDestroyHandle ExDestroyHandle;
+    PPHANDLE_TABLE PspCidTable = nullptr;
+    _ExDestroyHandle ExDestroyHandle = nullptr;
+    PHANDLE_TABLE HandleTable = nullptr; 
+    PHANDLE_TABLE_ENTRY CidEntry = nullptr; 
 
     if (!LocateData(PspCidTable, ExDestroyHandle))
     {
         return false;
     }
 
-    PHANDLE_TABLE HandleTable = (PHANDLE_TABLE)(*PspCidTable);
+    HandleTable = (PHANDLE_TABLE)(*PspCidTable);
 
-    PHANDLE_TABLE_ENTRY CidEntry = ExpLookupHandleTableEntry(HandleTable, ThreadId);
+    CidEntry = ExpLookupHandleTableEntry(HandleTable, ThreadId);
 
     if (CidEntry)
     {
