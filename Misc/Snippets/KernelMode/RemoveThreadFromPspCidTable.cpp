@@ -165,20 +165,15 @@ VOID EnumUnloadedDrivers(
     VOID
 );
 
-bool FindPattern(
-    IN UINT64 Base,
-    IN UINT64 Size,
-    IN PCUCHAR Pattern,
-    IN PCSTR WildCard,
-    OUT PVOID& Found
-);
-
-template <class T>
-VOID Resolve(
-    IN PVOID InstructionAddress,
-    IN INT OpcodeBytes,
-    IN INT AddressBytes,
-    OUT T& Found
+template <typename T>
+bool GetAddress(
+    IN UINT64 Base, 
+    IN UINT64 Size, 
+    IN PCUCHAR Pattern, 
+    IN PCSTR WildCard, 
+    IN INT OpcodeBytes, 
+    IN INT AddressBytes, 
+    _Inout_ T& Found
 );
 
 template <class ExportType>
@@ -230,21 +225,19 @@ bool LocateData(PPHANDLE_TABLE& PspCidTable, _ExDestroyHandle& ExDestroyHandle)
     NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
 
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PspCidTablePattern, "xxx????xxx", PspCidTableInstrAddr))
+     if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, PspCidTablePattern, "xxx????xxx", 3, 4, PspCidTable))
     {
         DbgPrint("Failed to get PspCidTable");
         return false;
     }
 
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, ExDestroyHandlePattern, "x????xxxx????xxxxx", ExDestroyHandleInstrAddr))
+    if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, ExDestroyHandlePattern, "x????xxxx????xxxxx", 1, 4, ExDestroyHandle))
     {
         DbgPrint("Failed to get ExDestroyHandle");
         return false;
     }
-
-    Resolve<PPHANDLE_TABLE>(PspCidTableInstrAddr, 3, 4, PspCidTable);
-
-    Resolve<_ExDestroyHandle>(ExDestroyHandleInstrAddr, 1, 4, ExDestroyHandle);
+    
+    return true; 
 }
 
 // https://github.com/notscimmy/libelevate/blob/56c2292157f900ac083344a6e3e4f4410978e91a/libelevate/libelevate.cpp#L7
@@ -312,8 +305,6 @@ ExportType GetKernelExport(PCWSTR zExportName)
    return ExportAddress ? ExportAddress : ExportType(nullptr); 
 }
 
-
-
 NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
     auto ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
@@ -334,7 +325,8 @@ NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
     return STATUS_UNSUCCESSFUL;
 }
 
-bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID& Found)
+template <typename T>
+bool GetAddress(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
 {
     auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
     {
@@ -349,23 +341,29 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
         return *WildCard == 0;
     };
 
+    auto Resolve = [&](PVOID InstructionAddress, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
+    {
+        ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
+
+        AddressBytes += OpcodeBytes;
+
+        ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
+
+        Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
+    };
+
+
     for (auto i = 0; i < Size; i++)
     {
-        if (CheckMask((UCHAR*)(Base + i), Pattern, WildCard))
+        if (CheckMask((PUCHAR)(Base + i), Pattern, WildCard))
         {
-            Found = (PVOID)(Base + i);
+            PVOID InstrAddress = (PVOID)(Base + i);
+
+            Resolve(InstrAddress, OpcodeBytes, AddressBytes, Found);
+
             return true;
         }
     }
 
     return false;
-}
-
-template <class T>
-VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T& Found)
-{
-    ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
-    AddressBytes += OpcodeBytes;
-    ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
-    Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
 }
