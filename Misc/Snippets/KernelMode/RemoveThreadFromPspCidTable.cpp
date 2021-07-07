@@ -32,7 +32,7 @@ typedef struct _HANDLE_TABLE_FREE_LIST
     union _HANDLE_TABLE_ENTRY* LastFreeHandleEntry;                       
     LONG HandleCount;                                                     
     ULONG HighWaterMark;                                                  
-}_HANDLE_TABLE_FREE_LIST, * _PHANDLE_TABLE_FREE_LIST;
+}HANDLE_TABLE_FREE_LIST, * PHANDLE_TABLE_FREE_LIST;
 
 typedef struct _HANDLE_TABLE
 {
@@ -65,9 +65,9 @@ typedef struct _HANDLE_TABLE
             struct _HANDLE_TRACE_DEBUG_INFO* DebugInfo;                   
         };
     };
-}HANDLE_TABLE, * PHANDLE_TABLE;
+}HANDLE_TABLE, *PHANDLE_TABLE;
 
-struct _EXHANDLE
+typedef struct _EXHANDLE
 {
     union
     {
@@ -79,7 +79,7 @@ struct _EXHANDLE
         VOID* GenericHandleOverlay;
         ULONGLONG Value;
     };
-};
+}EXHANDLE, *PEXHANDLE;
 
 typedef union _HANDLE_TABLE_ENTRY
 {
@@ -104,7 +104,7 @@ typedef union _HANDLE_TABLE_ENTRY
         ULONG Spare1 : 6;
     };
     ULONG Spare2;
-}HANDLE_TABLE_ENTRY, * PHANDLE_TABLE_ENTRY;
+}HANDLE_TABLE_ENTRY, *PHANDLE_TABLE_ENTRY;
 
 typedef struct _SYSTEM_MODULE_ENTRY
 {
@@ -118,7 +118,7 @@ typedef struct _SYSTEM_MODULE_ENTRY
     USHORT LoadCount;
     USHORT OffsetToFileName;
     UCHAR FullPathName[256];
-} SYSTEM_MODULE_ENTRY, * PSYSTEM_MODULE_ENTRY;
+} SYSTEM_MODULE_ENTRY, *PSYSTEM_MODULE_ENTRY;
 
 typedef struct _SYSTEM_MODULE_INFORMATION
 {
@@ -126,11 +126,11 @@ typedef struct _SYSTEM_MODULE_INFORMATION
     SYSTEM_MODULE_ENTRY Module[1];
 } SYSTEM_MODULE_INFORMATION, * PSYSTEM_MODULE_INFORMATION;
 
-struct NtosInfo
+typedef struct _NtosInfo
 {
     PVOID ImageBase;
     ULONG64 ImageSize;
-};
+}NtosInfo, *PNtosInfo;
 
 typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)(
     _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
@@ -142,8 +142,8 @@ typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)(
 typedef BOOLEAN(NTAPI* _ExDestroyHandle)(
     IN PHANDLE_TABLE HandleTable,
     IN HANDLE Handle,
-    IN _HANDLE_TABLE_ENTRY* CidEntry
-    );
+    IN PHANDLE_TABLE_ENTRY CidEntry
+);
 
 typedef PHANDLE_TABLE* PPHANDLE_TABLE;
 
@@ -200,7 +200,6 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
 
     RemoveThread(PsGetCurrentThreadId()) ? DbgPrint("Removed Thread From PspCidTable") : DbgPrint("Failed to remove thread from PspCidTable");
        
-
     DriverObject->DriverUnload = Unload;
 
     return STATUS_SUCCESS;
@@ -304,45 +303,35 @@ bool RemoveThread(IN HANDLE ThreadId)
 template <class ExportType>
 ExportType GetKernelExport(PCWSTR zExportName)
 {
-    __try
-    {
-        UNICODE_STRING UExportName;
+   UNICODE_STRING UExportName;
 
-        RtlInitUnicodeString(&UExportName, zExportName);
+   RtlInitUnicodeString(&UExportName, zExportName);
 
-        ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
+   ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
 
-        return ExportAddress ? ExportAddress : ExportType();
-    }
-
-    __except (EXCEPTION_EXECUTE_HANDLER) {}
+   return ExportAddress ? ExportAddress : ExportType(nullptr); 
 }
 
 
 
 NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
-    __try
+    auto ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
+
+    SystemModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePoolZero(NonPagedPool, POOL_SIZE, POOL_TAG);
+
+    if (SystemModInfo)
     {
-        auto ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
+        NTSTATUS Status = ZwQuerySystemInformation(SystemModuleInformation, SystemModInfo, POOL_SIZE, nullptr);
 
-        SystemModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePoolZero(NonPagedPool, POOL_SIZE, POOL_TAG);
-
-        if (SystemModInfo)
+        if (NT_SUCCESS(Status))
         {
-            NTSTATUS Status = ZwQuerySystemInformation(SystemModuleInformation, SystemModInfo, POOL_SIZE, nullptr);
-
-            if (NT_SUCCESS(Status))
-            {
-                return STATUS_SUCCESS;
-            }
+            return STATUS_SUCCESS;
         }
-
-        ExFreePoolWithTag(SystemModInfo, POOL_TAG);
-        return STATUS_UNSUCCESSFUL;
     }
 
-    __except (EXCEPTION_EXECUTE_HANDLER) {}
+    ExFreePoolWithTag(SystemModInfo, POOL_TAG);
+    return STATUS_UNSUCCESSFUL;
 }
 
 bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID& Found)
