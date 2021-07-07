@@ -69,21 +69,15 @@ VOID Unload(
     IN PDRIVER_OBJECT DriverObject
 );
 
-bool FindPattern(
-    IN UINT64 Base, 
-    IN UINT64 Size, 
-    IN PCUCHAR Pattern, 
-    IN PCSTR WildCard, 
-    OUT PVOID* Found
-);
-
-
-template <class T>
-VOID Resolve(
-    IN PVOID InstructionAddress, 
-    IN INT OpcodeBytes, 
-    OUT INT AddressBytes, 
-    OUT T* Found
+template <typename T>
+bool GetAddress(
+	IN UINT64 Base, 
+	IN UINT64 Size, 
+	IN PCUCHAR Pattern, 
+	IN PCSTR WildCard, 
+	IN INT OpcodeBytes, 
+	IN INT AddressBytes, 
+	_Inout_ T& Found
 );
 
 NTSTATUS GetSysModInfo(
@@ -140,18 +134,17 @@ bool LocatePspNotifyEnableMask()
 
     NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PspNotifyEnableMaskPattern, "xx????xxxx", &PspNotifyEnableMaskInstrAddr))
+   if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, PspNotifyEnableMaskPattern, "xx????xxxx", 2, 4, pPspNotifyEnableMask))
     {
-        DbgPrint("Failed to find PspNotifyEnableMask");
-        return false;
+        DbgPrint("Failed to get PspNotifyEnableMask");
+        return false; 
     }
-        
-    Resolve<PUINT32>(PspNotifyEnableMaskInstrAddr, 2, 4, &PspNotifyEnableMask);
 
     return true;
 }
 
-bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID* Found)
+template <typename T>
+bool GetAddress(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
 {
     auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
     {
@@ -166,25 +159,31 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
         return *WildCard == 0;
     };
 
-    for (auto i = 0; i < Size; i++)
+    auto Resolve = [&](PVOID InstructionAddress, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
     {
-        if (CheckMask((UCHAR*)(Base + i), Pattern, WildCard))
-        {
-            *Found = (PVOID)(Base + i);
-            return true;
-        }
-    }
+        ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
 
-    return false;
-}
+        AddressBytes += OpcodeBytes;
 
-template <class T>
-VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T* Found)
-{
-    ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
-    AddressBytes += OpcodeBytes;
-    ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
-    *Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
+        ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
+
+        Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
+    };
+
+
+     for (auto i = 0; i < Size; i++)
+     {
+         if (CheckMask((PUCHAR)(Base + i), Pattern, WildCard))
+         {
+             PVOID InstrAddress = (PVOID)(Base + i);
+
+             Resolve(InstrAddress, OpcodeBytes, AddressBytes, Found);
+
+             return true;
+         }
+     }
+
+     return false;
 }
 
 template<class ExportType>
