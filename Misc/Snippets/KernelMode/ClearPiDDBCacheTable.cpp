@@ -66,6 +66,12 @@ typedef struct PiDDBCacheEntry
 	CHAR			SomeValue[16];
 }_PiDDBCacheEntry, * _PPiDDBCacheEntry;
 
+struct NtosInfo
+{
+    PVOID ImageBase;
+    ULONG64 ImageSize;
+};
+
 typedef struct _KLDR_DATA_TABLE_ENTRY
 {
 	struct _LIST_ENTRY InLoadOrderLinks;                                  
