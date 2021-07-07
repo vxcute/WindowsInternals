@@ -126,24 +126,24 @@ typedef struct _SYSTEM_MODULE_INFORMATION
     SYSTEM_MODULE_ENTRY Module[1];
 } SYSTEM_MODULE_INFORMATION, * PSYSTEM_MODULE_INFORMATION;
 
-struct NtosInfo
+typedef struct _NtosInfo
 {
     PVOID ImageBase;
     ULONG64 ImageSize;
-};
+}NtosInfo, *PNtosInfo;
 
 typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)(
     _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
     _Inout_   PVOID                    SystemInformation,
     _In_      ULONG                    SystemInformationLength,
     _Out_opt_ PULONG                   ReturnLength
-    );
+);
 
 typedef BOOLEAN(NTAPI* _ExDestroyHandle)(
     IN PHANDLE_TABLE HandleTable,
     IN HANDLE Handle,
     IN _HANDLE_TABLE_ENTRY* CidEntry
-    );
+);
 
 typedef PHANDLE_TABLE* PPHANDLE_TABLE;
 
