@@ -275,6 +275,7 @@ PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(PHANDLE_TABLE HandleTable, HANDLE 
         v5 = *(UINT64*)(*(UINT64*)(v3 + 8 * (v2 >> 19) - 2) + 8 * ((v2 >> 10) & 0x1FF));
         return (PHANDLE_TABLE_ENTRY)(v5 + 4 * (v2 & 0x3FF));
     }
+    
     return (PHANDLE_TABLE_ENTRY)(v3 + 4 * v2);
 }
 
@@ -300,6 +301,8 @@ bool RemoveThread(IN HANDLE ThreadId)
 
         return CidEntry->ObjectPointerBits == NULL;
     }
+    
+    return false; 
 }
 
 template <class ExportType>
