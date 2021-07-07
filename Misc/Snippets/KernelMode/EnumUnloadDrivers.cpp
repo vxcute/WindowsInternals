@@ -43,37 +43,32 @@ typedef struct _MM_UNLOADED_DRIVER
 } MM_UNLOADED_DRIVER, * PMM_UNLOADED_DRIVER;
 
 NTSTATUS DriverEntry(
-    IN PDRIVER_OBJECT DriverObject,
-    IN PUNICODE_STRING RegistryPath
+    PDRIVER_OBJECT DriverObject,
+    PUNICODE_STRING RegistryPath
 );
 
 VOID Unload(
-    IN PDRIVER_OBJECT DriverObject
+    PDRIVER_OBJECT DriverObject
 );
 
 VOID EnumUnloadedDrivers(
     VOID
 );
 
-bool FindPattern(
-    IN UINT64 Base,
-    IN UINT64 Size,
-    IN PCUCHAR Pattern,
-    IN PCSTR WildCard,
-    OUT PVOID& Found
-);
-
-template <class T>
-VOID Resolve(
-    IN PVOID InstructionAddress,
-    IN INT OpcodeBytes,
-    IN INT AddressBytes,
-    OUT T& Found
+template <typename T>
+bool GetAddress(
+    UINT64 Base,
+    UINT64 Size,
+    PCUCHAR Pattern,
+    PCSTR WildCard,
+    INT OpcodeBytes,
+    INT AddressBytes,
+    T& Found
 );
 
 template <class ExportType>
 ExportType GetKernelExport(
-    IN PCWSTR zExportName
+    PCWSTR zExportName
 );
 
 NTSTATUS GetSysModInfo(
@@ -82,17 +77,17 @@ NTSTATUS GetSysModInfo(
 
 typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)
 (
-    _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
-    _Inout_   PVOID                    SystemInformation,
-    _In_      ULONG                    SystemInformationLength,
-    _Out_opt_ PULONG                   ReturnLength
+   SYSTEM_INFORMATION_CLASS SystemInformationClass,
+   PVOID                    SystemInformation,
+   ULONG                    SystemInformationLength,
+   PULONG                   ReturnLength
 );
 
 
 PMM_UNLOADED_DRIVER pMmUnloadedDrivers;
 PULONG pMmLastUnloadedDriver;
 
-NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
     UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -103,34 +98,31 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
     return STATUS_SUCCESS;
 }
 
-VOID Unload(IN PDRIVER_OBJECT DriverObject)
+VOID Unload(PDRIVER_OBJECT DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
     DbgPrint("Driver Unloaded ...");
 }
 
-template<class ExportType>
+template <typename ExportType>
 ExportType GetKernelExport(PCWSTR zExportName)
 {
-    __try
-    {
-        UNICODE_STRING UExportName;
+    UNICODE_STRING UExportName;
 
-        RtlInitUnicodeString(&UExportName, zExportName);
+    RtlInitUnicodeString(&UExportName, zExportName);
 
-        ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
+    ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
 
-        return ExportAddress ? ExportAddress : ExportType();
-    }
-
-    __except (EXCEPTION_EXECUTE_HANDLER) {}
+    return ExportAddress ? ExportAddress : ExportType(nullptr);  
 }
 
-bool ExposeKernelData(VOID)
+bool LocateMmUnloaded(PULONG64& MmLastUnloadedDriver, PMM_UNLOADED_DRIVER& MmUnloadedDrivers)
 {
-    PSYSTEM_MODULE_INFORMATION SystemModInfo;
+    PSYSTEM_MODULE_INFORMATION SystemModInfo = nullptr;
 
-    PVOID MmUnloadedDriversInstr, MmLastUnloadedDriverInstr;
+    UCHAR MmUnloadedDriversPattern[] = "\x4C\x8B\x15\x00\x00\x00\x00\x4C\x8B\xC9";
+
+    UCHAR MmLastUnloadedDriverPattern[] = "\x8B\x05\x00\x00\x00\x00\x83\xF8\x32";
 
     if (!NT_SUCCESS(GetSysModInfo(SystemModInfo)))
     {
@@ -140,34 +132,29 @@ bool ExposeKernelData(VOID)
 
     NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
-    UCHAR MmUnloadedDriversPattern[] = "\x4C\x8B\x15\x00\x00\x00\x00\x4C\x8B\xC9";
-
-    UCHAR MmLastUnloadedDriverPattern[] = "\x8B\x05\x00\x00\x00\x00\x83\xF8\x32";
-
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmUnloadedDriversPattern, "xxx????xxx", MmUnloadedDriversInstr))
+    if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, MmUnloadedDriversPattern, "xxx????xxx", 3, 4, MmUnloadedDrivers))
     {
         DbgPrint("Failed to get MmUnloadedDrivers");
         return false;
     }
 
-    if(!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmLastUnloadedDriverPattern, "xx????xxx", MmLastUnloadedDriverInstr))
+    if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, MmLastUnloadedDriverPattern, "xx????xxx", 2, 4, MmLastUnloadedDriver))
     {
         DbgPrint("Failed to get MmLastUnloadedDriver");
-        return false;
+        return false
     }
 
-    Resolve<PMM_UNLOADED_DRIVER>(MmUnloadedDriversInstr, 3, 4, pMmUnloadedDrivers);
-
-    Resolve<PULONG>(MmLastUnloadedDriverInstr, 2, 4, pMmLastUnloadedDriver);
-
-    return STATUS_SUCCESS;
+    return true;
 }
 
 VOID EnumUnloadedDrivers()
 {
-    ExposeKernelData();
+    PULONG64 pMmLastUnloadedDriver; 
+    PMM_UNLOADED_DRIVER pMmUnloadedDrivers;
 
-    ULONG MmLastUnloadedDriver = *pMmLastUnloadedDriver;
+    LocateMmUnloaded(pMmLastUnloadedDriver, pMmUnloadedDrivers);
+
+    ULONG64 MmLastUnloadedDriver = *pMmLastUnloadedDriver;
 
     PMM_UNLOADED_DRIVER MmUnloadedDrivers = *(PMM_UNLOADED_DRIVER*)pMmUnloadedDrivers;
 
@@ -180,30 +167,26 @@ VOID EnumUnloadedDrivers()
 
 NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
-    __try
-    {
-        auto ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
+   auto ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
 
-        SystemModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePoolZero(NonPagedPool, POOL_SIZE, POOL_TAG);
+   SystemModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePoolZero(NonPagedPool, POOL_SIZE, POOL_TAG);
 
-        if (SystemModInfo)
-        {
-            NTSTATUS Status = ZwQuerySystemInformation(SystemModuleInformation, SystemModInfo, POOL_SIZE, nullptr);
+   if (SystemModInfo)
+   {
+       NTSTATUS Status = ZwQuerySystemInformation(SystemModuleInformation, SystemModInfo, POOL_SIZE, nullptr);
 
-            if (NT_SUCCESS(Status))
-            {
-                return STATUS_SUCCESS;
-            }
-        }
+       if (NT_SUCCESS(Status))
+       {
+           return STATUS_SUCCESS;
+       }
+   }
 
-        ExFreePoolWithTag(SystemModInfo, POOL_TAG);
-        return STATUS_UNSUCCESSFUL;
-    }
-
-    __except (EXCEPTION_EXECUTE_HANDLER) {}
+   ExFreePoolWithTag(SystemModInfo, POOL_TAG);
+   return STATUS_UNSUCCESSFUL;
 }
 
-bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID& Found)
+template <typename T>
+bool GetAddress(UINT64 Base, UINT64 Size, PCUCHAR Pattern, PCSTR WildCard, INT OpcodeBytes, INT AddressBytes, T& Found)
 {
     auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
     {
@@ -218,23 +201,29 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
         return *WildCard == 0;
     };
 
+    auto Resolve = [&](PVOID InstructionAddress, INT OpcodeBytes, INT AddressBytes, T& Found)
+    {
+        ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
+
+        AddressBytes += OpcodeBytes;
+
+        ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
+
+        Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
+    };
+
+
     for (auto i = 0; i < Size; i++)
     {
-        if (CheckMask((UCHAR*)(Base + i), Pattern, WildCard))
+        if (CheckMask((PUCHAR)(Base + i), Pattern, WildCard))
         {
-            Found = (PVOID)(Base + i);
+            PVOID InstrAddress = (PVOID)(Base + i);
+
+            Resolve(InstrAddress, OpcodeBytes, AddressBytes, Found);
+
             return true;
         }
     }
 
     return false;
-}
-
-template <class T>
-VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T& Found)
-{
-    ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
-    AddressBytes += OpcodeBytes;
-    ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
-    Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
 }
