@@ -2,19 +2,19 @@
 #include <nt.hpp> 
 
 NTSTATUS DriverEntry(
-  IN PDRIVER_OBJECT DriverObject, 
-  IN PUNICODE_STRING RegistryPath
+  PDRIVER_OBJECT DriverObject, 
+  PUNICODE_STRING RegistryPath
 );
 
 VOID Unload(
-	IN PDRIVER_OBJECT DriverObject
+	PDRIVER_OBJECT DriverObject
 );
 
 VOID HideProcess(
-  IN PCSTR ProcessName
+   PCSTR ProcessName
 ); 
 
-NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
 	UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -25,13 +25,13 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
 	return STATUS_SUCCESS;
 }
 
-VOID Unload(IN PDRIVER_OBJECT DriverObject)
+VOID Unload(PDRIVER_OBJECT DriverObject)
 {
 	UNREFERENCED_PARAMETER(DriverObject);
 	DbgPrint("Driver Unloaded ...");
 }
 
-VOID HideProcess(IN PCSTR ProcessName)
+VOID HideProcess(PCSTR ProcessName)
 {
 	_PEPROCESS CurrentProcess = nullptr;
 
