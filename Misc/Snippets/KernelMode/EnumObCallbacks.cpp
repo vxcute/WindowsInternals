@@ -114,12 +114,12 @@ VOID LocateCallbackListHeads(PLIST_ENTRY& ObProcessCallbackListHead, PLIST_ENTRY
             for (auto i = 0xF8; i > 0x0; i -= 0x8)
             {
                 UINT64 First = *(UINT64*)((UINT64)ProcessType + i); 
-
                 UINT64 Second = *(UINT64*)((UINT64)ProcessType + (i + 0x8));
 
                 if (First && MmIsAddressValid((PVOID)First) && Second && MmIsAddressValid((PVOID)Second))
                 {
-                    UINT64 Test1First = *(UINT64*)(First + 0x0), Test1Second = *(UINT64*)(First + 0x8);
+                    UINT64 Test1First = *(UINT64*)(First + 0x0); 
+                    UINT64 Test1Second = *(UINT64*)(First + 0x8);
 
                     if (Test1First && MmIsAddressValid((PVOID)Test1First) && Test1Second && MmIsAddressValid((PVOID)Test1Second))
                     {
