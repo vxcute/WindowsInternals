@@ -35,37 +35,31 @@ bool ClearPiDDBCache(
 	IN PDRIVER_OBJECT DriverObject
 );
 
-NTSTATUS ScanSection(
-	IN PCCHAR SectionName,
-	IN PCUCHAR Pattern,
-	IN UCHAR Wildcard,
-	OUT PVOID* Found,
-	PVOID Base = nullptr
-);
 
-NTSTATUS SearchPattern(
-	IN PCUCHAR Pattern,
-	IN UCHAR WildCard,
-	IN PVOID Base,
-	IN ULONG_PTR Size,
-	OUT PVOID* Found,
-	int Index = 0
-);
-
-PVOID ResolveRelativeAddress(
-	IN PVOID Instruction,
-	IN ULONG Offset,
-	IN ULONG InstructionSize
-);
-
-PVOID GetNtosImageBase(
-	VOID
-);
+NTSTATUS GetSysModInfo(
+     OUT PSYSTEM_MODULE_INFORMATION& SystemModInfo
+); 
 
 template <class ExportType>
 ExportType GetKernelExport(
 	PCWSTR zExportName
 );
+
+template <class T>
+VOID Resolve(
+	IN PVOID InstructionAddress, 
+	IN INT OpcodeBytes, 
+	OUT INT AddressBytes, 
+	OUT T* Found
+); 
+
+bool FindPattern(
+	IN UINT64 Base, 
+	IN UINT64 Size, 
+	IN PCUCHAR Pattern, 
+	IN PCSTR WildCard, 
+	OUT PVOID* Found
+); 
 
 typedef struct PiDDBCacheEntry
 {
@@ -327,7 +321,7 @@ ExportType GetKernelExport(PCWSTR zExportName)
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
+NTSTATUS GetSysModInfo(OUT PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
     __try
     {
@@ -350,6 +344,5 @@ NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
     }
 
     __except (EXCEPTION_EXECUTE_HANDLER) {}
-
 
 }
