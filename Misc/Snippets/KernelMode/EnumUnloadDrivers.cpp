@@ -60,7 +60,7 @@ bool FindPattern(
     IN UINT64 Size,
     IN PCUCHAR Pattern,
     IN PCSTR WildCard,
-    OUT PVOID* Found
+    OUT PVOID& Found
 );
 
 template <class T>
@@ -68,7 +68,7 @@ VOID Resolve(
     IN PVOID InstructionAddress,
     IN INT OpcodeBytes,
     IN INT AddressBytes,
-    OUT T* Found
+    OUT T& Found
 );
 
 template <class ExportType>
@@ -144,21 +144,21 @@ bool ExposeKernelData(VOID)
 
     UCHAR MmLastUnloadedDriverPattern[] = "\x8B\x05\x00\x00\x00\x00\x83\xF8\x32";
 
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmUnloadedDriversPattern, "xxx????xxx", &MmUnloadedDriversInstr))
+    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmUnloadedDriversPattern, "xxx????xxx", MmUnloadedDriversInstr))
     {
         DbgPrint("Failed to get MmUnloadedDrivers");
         return false;
     }
 
-    if(!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmLastUnloadedDriverPattern, "xx????xxx", &MmLastUnloadedDriverInstr))
+    if(!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, MmLastUnloadedDriverPattern, "xx????xxx", MmLastUnloadedDriverInstr))
     {
         DbgPrint("Failed to get MmLastUnloadedDriver");
         return false;
     }
 
-    Resolve<PMM_UNLOADED_DRIVER>(MmUnloadedDriversInstr, 3, 4, &pMmUnloadedDrivers);
+    Resolve<PMM_UNLOADED_DRIVER>(MmUnloadedDriversInstr, 3, 4, pMmUnloadedDrivers);
 
-    Resolve<PULONG>(MmLastUnloadedDriverInstr, 2, 4, &pMmLastUnloadedDriver);
+    Resolve<PULONG>(MmLastUnloadedDriverInstr, 2, 4, pMmLastUnloadedDriver);
 
     return STATUS_SUCCESS;
 }
@@ -203,7 +203,7 @@ NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
     __except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID* Found)
+bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID& Found)
 {
     auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
     {
@@ -222,7 +222,7 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
     {
         if (CheckMask((UCHAR*)(Base + i), Pattern, WildCard))
         {
-            *Found = (PVOID)(Base + i);
+            Found = (PVOID)(Base + i);
             return true;
         }
     }
@@ -231,10 +231,10 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
 }
 
 template <class T>
-VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T* Found)
+VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T& Found)
 {
     ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
     AddressBytes += OpcodeBytes;
     ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
-    *Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
+    Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
 }
