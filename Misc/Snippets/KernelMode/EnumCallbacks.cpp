@@ -86,7 +86,7 @@ VOID EnumObCallbacks()
 
     for (PLIST_ENTRY ListEntry = ObThreadCallbackListHead->Flink; ListEntry != ObThreadCallbackListHead; ListEntry = ListEntry->Flink)
     {
-        DbgPrint("Found ObProcessCallbackListHead at: %p\n", ObThreadCallbackListHead);
+        DbgPrint("Found ObThreadCallbackListHead at: %p\n", ObThreadCallbackListHead);
 
         ObCallback = (POB_CALLBACK)ListEntry;
 
