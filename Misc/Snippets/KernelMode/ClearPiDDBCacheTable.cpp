@@ -41,21 +41,22 @@ ExportType GetKernelExport(
 	PCWSTR zExportName
 );
 
+bool FindPattern(
+    IN UINT64 Base,
+    IN UINT64 Size,
+    IN PCUCHAR Pattern,
+    IN PCSTR WildCard,
+    OUT PVOID& Found
+);
+
 template <class T>
 VOID Resolve(
-	IN PVOID InstructionAddress, 
-	IN INT OpcodeBytes, 
-	OUT INT AddressBytes, 
-	OUT T* Found
-); 
+    IN PVOID InstructionAddress,
+    IN INT OpcodeBytes,
+    IN INT AddressBytes,
+    OUT T& Found
+);
 
-bool FindPattern(
-	IN UINT64 Base, 
-	IN UINT64 Size, 
-	IN PCUCHAR Pattern, 
-	IN PCSTR WildCard, 
-	OUT PVOID* Found
-); 
 
 typedef struct PiDDBCacheEntry
 {
@@ -214,22 +215,22 @@ bool LocatePiDDB(PRTL_AVL_TABLE& PiDDBCacheTable, PERESOURCE& PiDDBLock)
 
     NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBLockPattern, "xxx????x????xxx", &PiDDBLockInstr))
+    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBLockPattern, "xxx????x????xxx", PiDDBLockInstr))
     {
         DbgPrint("Failed to find PiDDBLock");
         return false;
     }
 
 
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBCacheTablePattern, "xxx????x????x????xx????", &PiDDBCacheTableInstr))
+    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBCacheTablePattern, "xxx????x????x????xx????", PiDDBCacheTableInstr))
     {
         DbgPrint("Failed to find PiDDBCacheTable");
         return false;
     }
         
-    Resolve<PERESOURCE>(PiDDBLockInstr, 3, 4, &PiDDBLock);
+    Resolve<PERESOURCE>(PiDDBLockInstr, 3, 4, PiDDBLock);
     
-    Resolve<PRTL_AVL_TABLE>(PiDDBCacheTableInstr, 3, 4, &PiDDBCacheTable);
+    Resolve<PRTL_AVL_TABLE>(PiDDBCacheTableInstr, 3, 4, PiDDBCacheTable);
 
     return true; 
 }
@@ -275,7 +276,7 @@ bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 	return true;
 }
 
-bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID* Found)
+bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID& Found)
 {
     auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
     {
@@ -294,7 +295,7 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
     {
         if (CheckMask((UCHAR*)(Base + i), Pattern, WildCard))
         {
-            *Found = (PVOID)(Base + i);
+            Found = (PVOID)(Base + i);
             return true;
         }
     }
@@ -303,12 +304,12 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
 }
 
 template <class T>
-VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T* Found)
+VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T& Found)
 {
     ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
     AddressBytes += OpcodeBytes;
     ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
-    *Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
+    Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
 }
 
 template <class ExportType>
