@@ -240,7 +240,10 @@ bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 	PRTL_AVL_TABLE PiDDBCacheTable = nullptr; 
 	_PiDDBCacheEntry PiDDBCacheEntry = { 0 };
 
-	LocatePiDDB(PiDDBLock, PiDDBCacheTable);
+	if(!LocatePiDDB(PiDDBLock, PiDDBCacheTable))
+	{
+	    return false; 
+	}
 
 	auto DriverkLdr = (_PKLDR_DATA_TABLE_ENTRY)DriverObject->DriverSection;
 
