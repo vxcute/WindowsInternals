@@ -85,7 +85,7 @@ PVOID GetNtosImageBase4()
 
 	PIDT_ENTRY IdtBase = (PIDT_ENTRY)SpecialRegisters.Idtr.Base;
 
-	for (auto Page = (uintptr_t)IdtBase[0].InterruptServiceRoutine & ~0xfff;; Page; Page -= PAGE_SIZE)
+	for (auto Page = (uintptr_t)IdtBase[0].InterruptServiceRoutine & ~0xfff; Page != NULL; Page -= PAGE_SIZE)
 	{
 
 		if (*(USHORT*)Page == IMAGE_DOS_SIGNATURE)
@@ -107,7 +107,7 @@ PVOID GetNtosImageBase4()
 
 PVOID GetNtosImageBase5()
 {
-	for (auto Page = __readmsr(IA32_LSTAR) & ~0xfff;; Page; Page -= PAGE_SIZE)
+	for (auto Page = __readmsr(IA32_LSTAR) & ~0xfff; Page != NULL; Page -= PAGE_SIZE)
 	{
 
 		if (*(USHORT*)Page == IMAGE_DOS_SIGNATURE)
