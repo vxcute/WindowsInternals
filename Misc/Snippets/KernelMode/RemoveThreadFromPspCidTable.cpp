@@ -298,6 +298,8 @@ bool RemoveThread(IN HANDLE ThreadId)
 
         return CidEntry->ObjectPointerBits == NULL;
     }
+    
+    return false; 
 }
 
 template <class ExportType>
