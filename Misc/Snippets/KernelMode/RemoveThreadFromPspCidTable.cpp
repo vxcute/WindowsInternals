@@ -249,7 +249,7 @@ bool LocateData(PPHANDLE_TABLE& PspCidTable, _ExDestroyHandle& ExDestroyHandle)
 
 // https://github.com/notscimmy/libelevate/blob/56c2292157f900ac083344a6e3e4f4410978e91a/libelevate/libelevate.cpp#L7
 
-PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(_PHANDLE_TABLE HandleTable, HANDLE Handle)
+PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(IN _PHANDLE_TABLE HandleTable, IN HANDLE Handle)
 {
     unsigned __int64 v2;
     __int64 v3; 
