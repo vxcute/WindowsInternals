@@ -10,46 +10,46 @@
 #include <intrin.h>
 
 typedef PIMAGE_NT_HEADERS(NTAPI* _RtlImageNtHeader)(
-	IN PVOID ModuleAddress
+	PVOID ModuleAddress
 );
 
 NTSTATUS DriverEntry(
-	IN PDRIVER_OBJECT DriverObject,
-	IN PUNICODE_STRING RegistryPath
+	PDRIVER_OBJECT DriverObject,
+	PUNICODE_STRING RegistryPath
 );
 
 VOID Unload(
-	IN PDRIVER_OBJECT DriverObject
+	PDRIVER_OBJECT DriverObject
 );
 
 bool LocatePiDDB(
-	OUT PERESOURCE& PiDDBLock,
-	OUT PRTL_AVL_TABLE& PiDDBCacheTable
+	PERESOURCE& PiDDBLock,
+	PRTL_AVL_TABLE& PiDDBCacheTable
 );
 
 bool ClearPiDDBCache(
-	IN PDRIVER_OBJECT DriverObject
+	PDRIVER_OBJECT DriverObject
 );
 
 
 NTSTATUS GetSysModInfo(
-     OUT PSYSTEM_MODULE_INFORMATION& SystemModInfo
+    PSYSTEM_MODULE_INFORMATION& SystemModInfo
 ); 
 
-template <class ExportType>
+template <typename ExportType>
 ExportType GetKernelExport(
 	PCWSTR zExportName
 );
 
 template <typename T>
 bool GetAddress(
-	IN UINT64 Base, 
-	IN UINT64 Size, 
-	IN PCUCHAR Pattern, 
-	IN PCSTR WildCard, 
-	IN INT OpcodeBytes, 
-	IN INT AddressBytes, 
-	_Inout_ T& Found
+	UINT64 Base, 
+	UINT64 Size, 
+	PCUCHAR Pattern, 
+	PCSTR WildCard, 
+	INT OpcodeBytes, 
+	INT AddressBytes, 
+	T& Found
 );
 
 typedef struct PiDDBCacheEntry
@@ -174,7 +174,7 @@ typedef struct _IMAGE_SECTION_HEADER
 	ULONG Characteristics;
 } IMAGE_SECTION_HEADER, * PIMAGE_SECTION_HEADER;
 
-NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
 	UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -185,7 +185,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
 	return STATUS_SUCCESS;
 }
 
-VOID Unload(IN PDRIVER_OBJECT DriverObject)
+VOID Unload(PDRIVER_OBJECT DriverObject)
 {
 	UNREFERENCED_PARAMETER(DriverObject);
 	DbgPrint("Driver Unloaded ...");
@@ -223,7 +223,7 @@ bool LocatePiDDB(PRTL_AVL_TABLE& PiDDBCacheTable, PERESOURCE& PiDDBLock)
     return true; 
 }
 
-bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
+bool ClearPiDDBCache(PDRIVER_OBJECT DriverObject)
 {
 	PERESOURCE PiDDBLock = nullptr; 
 	PRTL_AVL_TABLE PiDDBCacheTable = nullptr; 
@@ -265,7 +265,7 @@ bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 }
 
 template <typename T>
-bool GetAddress(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
+bool GetAddress(UINT64 Base, UINT64 Size, PCUCHAR Pattern, PCSTR WildCard, INT OpcodeBytes, INT AddressBytes, T& Found)
 {
     auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
     {
@@ -280,7 +280,7 @@ bool GetAddress(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wil
         return *WildCard == 0;
     };
 
-    auto Resolve = [&](PVOID InstructionAddress, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
+    auto Resolve = [&](PVOID InstructionAddress, INT OpcodeBytes, INT AddressBytes, T& Found)
     {
         ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
 
@@ -307,45 +307,34 @@ bool GetAddress(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wil
     return false;
 }
 
-template <class ExportType>
+template <typename ExportType>
 ExportType GetKernelExport(PCWSTR zExportName)
 {
-	__try
-	{
-		UNICODE_STRING UExportName;
+	UNICODE_STRING UExportName;
 
-		RtlInitUnicodeString(&UExportName, zExportName);
+	RtlInitUnicodeString(&UExportName, zExportName);
 
-		ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
+	ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
 
-		return ExportAddress ? ExportAddress : ExportType();
-	}
-
-	__except (EXCEPTION_EXECUTE_HANDLER) {}
+	return ExportAddress ? ExportAddress : ExportType(nullptr);
 }
 
-NTSTATUS GetSysModInfo(OUT PSYSTEM_MODULE_INFORMATION& SystemModInfo)
+NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
-    __try
-    {
-        auto ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
+   auto ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
 
-        SystemModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePoolZero(NonPagedPool, POOL_SIZE, POOL_TAG);
+   SystemModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePoolZero(NonPagedPool, POOL_SIZE, POOL_TAG);
 
-        if (SystemModInfo)
-        {
-            NTSTATUS Status = ZwQuerySystemInformation(SystemModuleInformation, SystemModInfo, POOL_SIZE, nullptr);
+   if (SystemModInfo)
+   {
+       NTSTATUS Status = ZwQuerySystemInformation(SystemModuleInformation, SystemModInfo, POOL_SIZE, nullptr);
 
-            if (NT_SUCCESS(Status))
-            {
-                return STATUS_SUCCESS;
-            }
-        }
+       if (NT_SUCCESS(Status))
+       {
+           return STATUS_SUCCESS;
+       }
+   }
 
-        ExFreePoolWithTag(SystemModInfo, POOL_TAG);
-        return STATUS_UNSUCCESSFUL;
-    }
-
-    __except (EXCEPTION_EXECUTE_HANDLER) {}
-
+   ExFreePoolWithTag(SystemModInfo, POOL_TAG);
+   return STATUS_UNSUCCESSFUL;
 }
