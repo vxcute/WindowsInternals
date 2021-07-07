@@ -32,7 +32,7 @@ typedef struct _HANDLE_TABLE_FREE_LIST
     union _HANDLE_TABLE_ENTRY* LastFreeHandleEntry;                       
     LONG HandleCount;                                                     
     ULONG HighWaterMark;                                                  
-}_HANDLE_TABLE_FREE_LIST, * _PHANDLE_TABLE_FREE_LIST;
+}_HANDLE_TABLE_FREE_LIST, * PHANDLE_TABLE_FREE_LIST;
 
 typedef struct _HANDLE_TABLE
 {
@@ -65,7 +65,7 @@ typedef struct _HANDLE_TABLE
             struct _HANDLE_TRACE_DEBUG_INFO* DebugInfo;                   
         };
     };
-}_HANDLE_TABLE, * _PHANDLE_TABLE;
+}HANDLE_TABLE, * PHANDLE_TABLE;
 
 struct _EXHANDLE
 {
@@ -140,15 +140,15 @@ typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)(
     );
 
 typedef BOOLEAN(NTAPI* _ExDestroyHandle)(
-    IN _PHANDLE_TABLE HandleTable,
+    IN PHANDLE_TABLE HandleTable,
     IN HANDLE Handle,
     IN _HANDLE_TABLE_ENTRY* CidEntry
     );
 
-typedef _PHANDLE_TABLE* PPHANDLE_TABLE;
+typedef PHANDLE_TABLE* PPHANDLE_TABLE;
 
 PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(
-    IN _PHANDLE_TABLE HandleTable,
+    IN PHANDLE_TABLE HandleTable,
     IN HANDLE Handle
 );
 
@@ -187,7 +187,7 @@ ExportType GetKernelExport(
 );
 
 NTSTATUS GetSysModInfo(
-    IN PSYSTEM_MODULE_INFORMATION& SystemModInfo
+    PSYSTEM_MODULE_INFORMATION& SystemModInfo
 );
 
 bool RemoveThread(
@@ -199,7 +199,8 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
     UNREFERENCED_PARAMETER(RegistryPath);
 
     RemoveThread(PsGetCurrentThreadId()) ? DbgPrint("Removed Thread From PspCidTable") : DbgPrint("Failed to remove thread from PspCidTable");
-        
+       
+
     DriverObject->DriverUnload = Unload;
 
     return STATUS_SUCCESS;
@@ -249,7 +250,7 @@ bool LocateData(PPHANDLE_TABLE& PspCidTable, _ExDestroyHandle& ExDestroyHandle)
 
 // https://github.com/notscimmy/libelevate/blob/56c2292157f900ac083344a6e3e4f4410978e91a/libelevate/libelevate.cpp#L7
 
-PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(IN _PHANDLE_TABLE HandleTable, IN HANDLE Handle)
+PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(PHANDLE_TABLE HandleTable, HANDLE Handle)
 {
     unsigned __int64 v2;
     __int64 v3; 
@@ -288,7 +289,7 @@ bool RemoveThread(IN HANDLE ThreadId)
         return false;
     }
 
-    _PHANDLE_TABLE HandleTable = (_PHANDLE_TABLE)(*PspCidTable);
+    PHANDLE_TABLE HandleTable = (PHANDLE_TABLE)(*PspCidTable);
 
     PHANDLE_TABLE_ENTRY CidEntry = ExpLookupHandleTableEntry(HandleTable, ThreadId);
 
@@ -298,12 +299,10 @@ bool RemoveThread(IN HANDLE ThreadId)
 
         return CidEntry->ObjectPointerBits == NULL;
     }
-    
-    return false; 
 }
 
 template <class ExportType>
-ExportType GetKernelExport(IN PCWSTR zExportName)
+ExportType GetKernelExport(PCWSTR zExportName)
 {
     __try
     {
@@ -321,7 +320,7 @@ ExportType GetKernelExport(IN PCWSTR zExportName)
 
 
 
-NTSTATUS GetSysModInfo(IN PSYSTEM_MODULE_INFORMATION& SystemModInfo)
+NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
     __try
     {
