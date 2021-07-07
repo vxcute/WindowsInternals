@@ -41,22 +41,16 @@ ExportType GetKernelExport(
 	PCWSTR zExportName
 );
 
-bool FindPattern(
-    IN UINT64 Base,
-    IN UINT64 Size,
-    IN PCUCHAR Pattern,
-    IN PCSTR WildCard,
-    OUT PVOID& Found
+template <typename T>
+bool GetAddress(
+	IN UINT64 Base, 
+	IN UINT64 Size, 
+	IN PCUCHAR Pattern, 
+	IN PCSTR WildCard, 
+	IN INT OpcodeBytes, 
+	IN INT AddressBytes, 
+	_Inout_ T& Found
 );
-
-template <class T>
-VOID Resolve(
-    IN PVOID InstructionAddress,
-    IN INT OpcodeBytes,
-    IN INT AddressBytes,
-    OUT T& Found
-);
-
 
 typedef struct PiDDBCacheEntry
 {
@@ -199,8 +193,6 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
 
 bool LocatePiDDB(PRTL_AVL_TABLE& PiDDBCacheTable, PERESOURCE& PiDDBLock)
 {
-    PVOID PiDDBCacheTableInstr = nullptr, PiDDBLockInstr = nullptr;
-
     PSYSTEM_MODULE_INFORMATION SystemModInfo = nullptr;
 
     UCHAR PiDDBLockPattern[] = "\x48\x8D\x0D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x4C\x8B\x8C";
@@ -215,22 +207,18 @@ bool LocatePiDDB(PRTL_AVL_TABLE& PiDDBCacheTable, PERESOURCE& PiDDBLock)
 
     NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBLockPattern, "xxx????x????xxx", PiDDBLockInstr))
+    if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBLockPattern, "xxx????x????xxx", 3, 4, PiDDBLock))
     {
         DbgPrint("Failed to find PiDDBLock");
         return false;
     }
 
 
-    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBCacheTablePattern, "xxx????x????x????xx????", PiDDBCacheTableInstr))
+    if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBCacheTablePattern, "xxx????x????x????xx????", 3, 4, PiDDBCacheTable))
     {
         DbgPrint("Failed to find PiDDBCacheTable");
         return false;
     }
-        
-    Resolve<PERESOURCE>(PiDDBLockInstr, 3, 4, PiDDBLock);
-    
-    Resolve<PRTL_AVL_TABLE>(PiDDBCacheTableInstr, 3, 4, PiDDBCacheTable);
 
     return true; 
 }
@@ -241,7 +229,7 @@ bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 	PRTL_AVL_TABLE PiDDBCacheTable = nullptr; 
 	_PiDDBCacheEntry PiDDBCacheEntry = { 0 };
 
-	if(!LocatePiDDB(PiDDBLock, PiDDBCacheTable))
+	if(!LocatePiDDB(PiDDBCacheTable, PiDDBLock))
 	{
 	    return false; 
 	}
@@ -276,7 +264,8 @@ bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 	return true;
 }
 
-bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID& Found)
+template <typename T>
+bool GetAddress(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
 {
     auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
     {
@@ -291,25 +280,31 @@ bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wi
         return *WildCard == 0;
     };
 
+    auto Resolve = [&](PVOID InstructionAddress, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
+    {
+        ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
+
+        AddressBytes += OpcodeBytes;
+
+        ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
+
+        Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
+    };
+
+
     for (auto i = 0; i < Size; i++)
     {
-        if (CheckMask((UCHAR*)(Base + i), Pattern, WildCard))
+        if (CheckMask((PUCHAR)(Base + i), Pattern, WildCard))
         {
-            Found = (PVOID)(Base + i);
+            PVOID InstrAddress = (PVOID)(Base + i);
+
+            Resolve(InstrAddress, OpcodeBytes, AddressBytes, Found);
+
             return true;
         }
     }
 
     return false;
-}
-
-template <class T>
-VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T& Found)
-{
-    ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
-    AddressBytes += OpcodeBytes;
-    ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
-    Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
 }
 
 template <class ExportType>
