@@ -133,63 +133,65 @@ typedef struct _NtosInfo
 }NtosInfo, *PNtosInfo;
 
 typedef NTSTATUS(NTAPI* _ZwQuerySystemInformation)(
-    _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
-    _Inout_   PVOID                    SystemInformation,
-    _In_      ULONG                    SystemInformationLength,
-    _Out_opt_ PULONG                   ReturnLength
+    SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    PVOID                    SystemInformation,
+    ULONG                    SystemInformationLength,
+    PULONG                   ReturnLength
     );
 
 typedef BOOLEAN(NTAPI* _ExDestroyHandle)(
-    IN PHANDLE_TABLE HandleTable,
-    IN HANDLE Handle,
-    IN PHANDLE_TABLE_ENTRY CidEntry
+   PHANDLE_TABLE HandleTable,
+   HANDLE Handle,
+   PHANDLE_TABLE_ENTRY CidEntry
 );
 
 typedef PHANDLE_TABLE* PPHANDLE_TABLE;
 
-PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(
-    IN PHANDLE_TABLE HandleTable,
-    IN HANDLE Handle
-);
-
 NTSTATUS DriverEntry(
-    IN PDRIVER_OBJECT DriverObject,
-    IN PUNICODE_STRING RegistryPath
+    PDRIVER_OBJECT DriverObject,
+    PUNICODE_STRING RegistryPath
 );
 
 VOID Unload(
-    IN PDRIVER_OBJECT DriverObject
+    PDRIVER_OBJECT DriverObject
 );
 
-VOID EnumUnloadedDrivers(
-    VOID
+bool RemoveThread(
+   HANDLE ThreadId
 );
 
-template <typename T>
-bool GetAddress(
-    IN UINT64 Base, 
-    IN UINT64 Size, 
-    IN PCUCHAR Pattern, 
-    IN PCSTR WildCard, 
-    IN INT OpcodeBytes, 
-    IN INT AddressBytes, 
-    _Inout_ T& Found
+bool LocateData(
+    PPHANDLE_TABLE& PspCidTable, 
+    _ExDestroyHandle& ExDestroyHandle
 );
 
-template <class ExportType>
+PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(
+    PHANDLE_TABLE HandleTable,
+    HANDLE Handle
+);
+
+
+template <typename ExportType>
 ExportType GetKernelExport(
-    IN PCWSTR zExportName
+    PCWSTR zExportName
 );
 
 NTSTATUS GetSysModInfo(
     PSYSTEM_MODULE_INFORMATION& SystemModInfo
 );
 
-bool RemoveThread(
-   IN HANDLE ThreadId
+template <typename T>
+bool GetAddress(
+    UINT64 Base,
+    UINT64 Size,
+    PCUCHAR Pattern,
+    PCSTR WildCard,
+    INT OpcodeBytes,
+    INT AddressBytes,
+    T& Found
 );
 
-NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
     UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -200,11 +202,34 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
     return STATUS_SUCCESS;
 }
 
-VOID Unload(IN PDRIVER_OBJECT DriverObject)
+VOID Unload(PDRIVER_OBJECT DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
     DbgPrint("Driver Unloaded ...");
 }
+
+bool RemoveThread(HANDLE ThreadId)
+{
+    PPHANDLE_TABLE PspCidTable;
+    _ExDestroyHandle ExDestroyHandle;
+
+    if (!LocateData(PspCidTable, ExDestroyHandle))
+    {
+        return false;
+    }
+
+    PHANDLE_TABLE HandleTable = (PHANDLE_TABLE)(*PspCidTable);
+
+    PHANDLE_TABLE_ENTRY CidEntry = ExpLookupHandleTableEntry(HandleTable, ThreadId);
+
+    if (CidEntry)
+    {
+        ExDestroyHandle(HandleTable, ThreadId, CidEntry);
+
+        return CidEntry->ObjectPointerBits == NULL;
+    }
+}
+
 
 bool LocateData(PPHANDLE_TABLE& PspCidTable, _ExDestroyHandle& ExDestroyHandle)
 {
@@ -225,7 +250,7 @@ bool LocateData(PPHANDLE_TABLE& PspCidTable, _ExDestroyHandle& ExDestroyHandle)
     NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
 
-     if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, PspCidTablePattern, "xxx????xxx", 3, 4, PspCidTable))
+    if (!GetAddress((UINT64)ntos.ImageBase, ntos.ImageSize, PspCidTablePattern, "xxx????xxx", 3, 4, PspCidTable))
     {
         DbgPrint("Failed to get PspCidTable");
         return false;
@@ -236,8 +261,8 @@ bool LocateData(PPHANDLE_TABLE& PspCidTable, _ExDestroyHandle& ExDestroyHandle)
         DbgPrint("Failed to get ExDestroyHandle");
         return false;
     }
-    
-    return true; 
+
+    return true;
 }
 
 // https://github.com/notscimmy/libelevate/blob/56c2292157f900ac083344a6e3e4f4410978e91a/libelevate/libelevate.cpp#L7
@@ -245,9 +270,9 @@ bool LocateData(PPHANDLE_TABLE& PspCidTable, _ExDestroyHandle& ExDestroyHandle)
 PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(PHANDLE_TABLE HandleTable, HANDLE Handle)
 {
     unsigned __int64 v2;
-    __int64 v3; 
-    signed __int64 v4; 
-    __int64 v5; 
+    __int64 v3;
+    signed __int64 v4;
+    __int64 v5;
 
     v2 = (__int64)Handle & 0xFFFFFFFFFFFFFFFCui64;
 
@@ -271,39 +296,18 @@ PHANDLE_TABLE_ENTRY ExpLookupHandleTableEntry(PHANDLE_TABLE HandleTable, HANDLE 
     return (PHANDLE_TABLE_ENTRY)(v3 + 4 * v2);
 }
 
-bool RemoveThread(IN HANDLE ThreadId)
-{
-    PPHANDLE_TABLE PspCidTable;
-    _ExDestroyHandle ExDestroyHandle;
-
-    if (!LocateData(PspCidTable, ExDestroyHandle))
-    {
-        return false;
-    }
-
-    PHANDLE_TABLE HandleTable = (PHANDLE_TABLE)(*PspCidTable);
-
-    PHANDLE_TABLE_ENTRY CidEntry = ExpLookupHandleTableEntry(HandleTable, ThreadId);
-
-    if (CidEntry)
-    {
-        ExDestroyHandle(HandleTable, ThreadId, CidEntry);
-
-        return CidEntry->ObjectPointerBits == NULL;
-    }
-}
-
-template <class ExportType>
+template <typename ExportType>
 ExportType GetKernelExport(PCWSTR zExportName)
 {
-   UNICODE_STRING UExportName;
+    UNICODE_STRING UExportName;
 
-   RtlInitUnicodeString(&UExportName, zExportName);
+    RtlInitUnicodeString(&UExportName, zExportName);
 
-   ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
+    ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
 
-   return ExportAddress ? ExportAddress : ExportType(nullptr); 
+    return ExportAddress ? ExportAddress : ExportType(nullptr);
 }
+
 
 NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
@@ -326,7 +330,7 @@ NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 }
 
 template <typename T>
-bool GetAddress(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
+bool GetAddress(UINT64 Base, UINT64 Size, PCUCHAR Pattern, PCSTR WildCard, INT OpcodeBytes, INT AddressBytes, T& Found)
 {
     auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
     {
@@ -341,7 +345,7 @@ bool GetAddress(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR Wil
         return *WildCard == 0;
     };
 
-    auto Resolve = [&](PVOID InstructionAddress, IN INT OpcodeBytes, IN INT AddressBytes, _Inout_ T& Found)
+    auto Resolve = [&](PVOID InstructionAddress, INT OpcodeBytes, INT AddressBytes, T& Found)
     {
         ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
 
