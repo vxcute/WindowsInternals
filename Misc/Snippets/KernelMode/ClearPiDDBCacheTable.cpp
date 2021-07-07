@@ -4,8 +4,6 @@
       credits (I referenced this code with some small modifications) 
       
 	  . https://www.unknowncheats.me/forum/anti-cheat-bypass/324665-clearing-piddbcachetable.html
-	  . BlackBone: (SearchPattern and ScanSection Functions) 
-	  . LocatePiDDB: https://github.com/ApexLegendsUC/anti-cheat-emulator/blob/9e53bb4a329e0286ff4f237c5ded149d53b0dd56/Source.cpp#L588
 */ 
 
 #include <ntddk.h>
@@ -29,8 +27,8 @@ VOID Unload(
 );
 
 bool LocatePiDDB(
-	OUT PERESOURCE* PiDDBLock,
-	OUT PRTL_AVL_TABLE* PiDDBCacheTable
+	OUT PERESOURCE& PiDDBLock,
+	OUT PRTL_AVL_TABLE& PiDDBCacheTable
 );
 
 bool ClearPiDDBCache(
@@ -202,31 +200,40 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
 	DbgPrint("Driver Unloaded ...");
 }
 
-bool LocatePiDDB(OUT PERESOURCE* PiDDBLock, OUT PRTL_AVL_TABLE* PiDDBCacheTable)
+bool LocatePiDDB(PRTL_AVL_TABLE& PiDDBCacheTable, PERESOURCE& PiDDBLock)
 {
-	PVOID* PiDDBLockPtr = nullptr, PiDDBCacheTablePtr = nullptr;
-	UCHAR PiDDBLockPattern[] = "\x48\x8D\x0D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x4C\x8B\x8C";
-	UCHAR PiDDBCacheTablePattern[] = "\x66\x03\xD2\x48\x8D\x0D";
+    PVOID PiDDBCacheTableInstr = nullptr, PiDDBLockInstr = nullptr;
 
-	if (!NT_SUCCESS(ScanSection("PAGE", PiDDBLockPattern, 0, (PVOID*)(&PiDDBLockPtr))))
-	{
-		DbgPrint("Unable To Locate PiDDBLock");
-		return false;
-	}
+    PSYSTEM_MODULE_INFORMATION SystemModInfo = nullptr;
 
-	if (!NT_SUCCESS(ScanSection("PAGE", PiDDBCacheTablePattern, 0, (PVOID*)(&PiDDBCacheTablePtr))))
-	{
-		DbgPrint("Unable To Locate PiDDBCacheTable");
-		return false;
-	}
+    UCHAR PiDDBLockPattern[] = "\x48\x8D\x0D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x4C\x8B\x8C";
 
-	PiDDBCacheTablePtr = (PVOID)((uintptr_t)PiDDBCacheTablePtr + 3);
+    UCHAR PiDDBCacheTablePattern[] = "\x48\x8D\x0D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x3D\x00\x00\x00\x00\x0F\x83\x00\x00\x00\x00";
 
-	*PiDDBLock = (PERESOURCE)(ResolveRelativeAddress(PiDDBLockPtr, 3, 7));
+    if (!NT_SUCCESS(GetSysModInfo(SystemModInfo)))
+    {
+        DbgPrint("Failed to get system module information");
+        return false;
+    }
 
-	*PiDDBCacheTable = (PRTL_AVL_TABLE)(ResolveRelativeAddress(PiDDBCacheTablePtr, 3, 7));
+    NtosInfo ntos = { SystemModInfo->Module[0].ImageBase, SystemModInfo->Module[0].ImageSize };
 
-	return true;
+    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBLockPattern, "xxx????x????xxx", &PiDDBLockInstr))
+    {
+        DbgPrint("Failed to find PiDDBLock");
+        return false;
+    }
+
+
+    if (!FindPattern((UINT64)ntos.ImageBase, ntos.ImageSize, PiDDBCacheTablePattern, "xxx????x????x????xx????", &PiDDBCacheTableInstr))
+    {
+        DbgPrint("Failed to find PiDDBCacheTable");
+        return false;
+    }
+        
+    Resolve<PERESOURCE>(PiDDBLockInstr, 3, 4, &PiDDBLock);
+    
+    Resolve<PRTL_AVL_TABLE>(PiDDBCacheTableInstr, 3, 4, &PiDDBCacheTable);
 }
 
 bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
@@ -235,7 +242,7 @@ bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 	PRTL_AVL_TABLE PiDDBCacheTable = nullptr; 
 	_PiDDBCacheEntry PiDDBCacheEntry = { 0 };
 
-	LocatePiDDB(&PiDDBLock, &PiDDBCacheTable);
+	LocatePiDDB(PiDDBLock, PiDDBCacheTable);
 
 	auto DriverkLdr = (_PKLDR_DATA_TABLE_ENTRY)DriverObject->DriverSection;
 
@@ -267,109 +274,40 @@ bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
 	return true;
 }
 
-NTSTATUS SearchPattern(IN PCUCHAR Pattern, IN UCHAR WildCard, IN PVOID Base, IN ULONG_PTR Size, OUT PVOID* Found, int Index)
+bool FindPattern(IN UINT64 Base, IN UINT64 Size, IN PCUCHAR Pattern, IN PCSTR WildCard, OUT PVOID* Found)
 {
-	if (Found == nullptr || Pattern == nullptr || Base == nullptr)
-	{
-		return STATUS_ACCESS_DENIED;
-	}
+    auto CheckMask = [&](PCUCHAR Data, PCUCHAR Pattern, PCSTR WildCard)
+    {
+        for (; *WildCard; ++WildCard, ++Data, ++Pattern)
+        {
+            if (*WildCard == 'x' && *Data != *Pattern)
+            {
+                return false;
+            }
+        }
 
-	if (Base == nullptr)
-	{
-		Base = GetNtosImageBase();
-	}
+        return *WildCard == 0;
+    };
 
-	int cIndex = 0;
+    for (auto i = 0; i < Size; i++)
+    {
+        if (CheckMask((UCHAR*)(Base + i), Pattern, WildCard))
+        {
+            *Found = (PVOID)(Base + i);
+            return true;
+        }
+    }
 
-	ULONG_PTR Length = sizeof(Pattern) - 1;
-
-	for (ULONG_PTR i = 0; i < Size - Length; i++)
-	{
-		bool cFound = true;
-
-		for (ULONG_PTR j = 0; j < Length; j++)
-		{
-			if (Pattern[j] != WildCard && Pattern[j] != ((PCUCHAR)Base)[i + j])
-			{
-				cFound = false;
-				break;
-			}
-		}
-
-		if (cFound != false && cIndex++ == Index)
-		{
-			*Found = (PUCHAR)Base + i;
-			return STATUS_SUCCESS;
-		}
-	}
-
-	return STATUS_NOT_FOUND;
+    return false;
 }
 
-NTSTATUS ScanSection(IN PCCHAR SectionName, IN PCUCHAR Pattern, IN UCHAR Wildcard, OUT PVOID* Found, PVOID Base)
+template <class T>
+VOID Resolve(IN PVOID InstructionAddress, IN INT OpcodeBytes, OUT INT AddressBytes, OUT T* Found)
 {
-	ANSI_STRING zSectionName, xSectionName;
-
-	ULONG Length = sizeof(Pattern) - 1;
-
-	auto RtlImageNtHeader = GetKernelExport<_RtlImageNtHeader>(L"RtlImageNtHeader");
-
-	if (Found == nullptr)
-	{
-		return STATUS_ACCESS_DENIED;
-	}
-
-	if (Base == nullptr)
-	{
-		Base = GetNtosImageBase();
-	}
-
-	if (Base == nullptr)
-	{
-		return STATUS_ACCESS_DENIED;
-	}
-
-	PIMAGE_NT_HEADERS64 NtHeaders = RtlImageNtHeader(Base);
-
-	if (NtHeaders == nullptr)
-	{
-		return STATUS_ACCESS_DENIED;
-	}
-
-	PIMAGE_SECTION_HEADER FirstSection = (PIMAGE_SECTION_HEADER)((uintptr_t)&NtHeaders->FileHeader + NtHeaders->FileHeader.SizeOfOptionalHeader + sizeof(IMAGE_FILE_HEADER));
-
-	for (PIMAGE_SECTION_HEADER Section = FirstSection; Section < FirstSection + NtHeaders->FileHeader.NumberOfSections; Section++)
-	{
-
-		RtlInitAnsiString(&zSectionName, SectionName);
-
-		RtlInitAnsiString(&xSectionName, (PCCHAR)Section->Name);
-
-		if (!RtlCompareString(&zSectionName, &xSectionName, true))
-		{
-			PVOID Address = NULL;
-
-			NTSTATUS Status = SearchPattern(Pattern, Wildcard, (PUCHAR)Base + Section->VirtualAddress, Section->Misc.VirtualSize, &Address);
-
-			if (NT_SUCCESS(Status))
-			{
-				*(PULONG64)Found = (ULONG_PTR)(Address);
-
-				return Status;
-			}
-		}
-	}
-
-	return STATUS_ACCESS_DENIED;
-}
-
-PVOID ResolveRelativeAddress(IN PVOID Instruction, IN ULONG  Offset, IN ULONG InstructionSize)
-{
-	ULONG_PTR xInstruction = (ULONG_PTR)Instruction;
-	LONG RipOffset = *(PLONG)(xInstruction + Offset);
-	PVOID ResolvedAddress = (PVOID)(xInstruction + InstructionSize + RipOffset);
-
-	return ResolvedAddress;
+    ULONG64 InstructionAddr = (ULONG64)InstructionAddress;
+    AddressBytes += OpcodeBytes;
+    ULONG32 RelativeOffset = *(ULONG32*)(InstructionAddr + OpcodeBytes);
+    *Found = (T)(InstructionAddr + RelativeOffset + AddressBytes);
 }
 
 template <class ExportType>
@@ -389,28 +327,29 @@ ExportType GetKernelExport(PCWSTR zExportName)
 	__except (EXCEPTION_EXECUTE_HANDLER) {}
 }
 
-PVOID GetNtosImageBase(VOID)
+NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
-	__try
-	{
-		for (auto Page = __readmsr(IA32_LSTAR) & ~0xfff; Page != NULL; Page -= PAGE_SIZE)
-		{
+    __try
+    {
+        auto ZwQuerySystemInformation = GetKernelExport<_ZwQuerySystemInformation>(L"ZwQuerySystemInformation");
 
-			if (*(USHORT*)Page == IMAGE_DOS_SIGNATURE)
-			{
+        SystemModInfo = (PSYSTEM_MODULE_INFORMATION)ExAllocatePoolZero(NonPagedPool, POOL_SIZE, POOL_TAG);
 
-				for (auto Bytes = Page; Bytes < Page + 0x400; Bytes += 8)
-				{
-					if (*(ULONG64*)(Bytes) == PAGELK_PATTERN)
-					{
-						return (PVOID)Page;
-					}
-				}
-			}
-		}
+        if (SystemModInfo)
+        {
+            NTSTATUS Status = ZwQuerySystemInformation(SystemModuleInformation, SystemModInfo, POOL_SIZE, nullptr);
 
-		return nullptr;
-	}
+            if (NT_SUCCESS(Status))
+            {
+                return STATUS_SUCCESS;
+            }
+        }
 
-	__except (EXCEPTION_EXECUTE_HANDLER) {}
+        ExFreePoolWithTag(SystemModInfo, POOL_TAG);
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    __except (EXCEPTION_EXECUTE_HANDLER) {}
+
+
 }
