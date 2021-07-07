@@ -8,41 +8,41 @@
 #define PROCESS_SUSPEND_RESUME	     0x0800
 
 typedef NTSTATUS(NTAPI* _PsLookupProcessByProcessId)(
-	IN HANDLE ProcessID, 
-	IN _PEPROCESS* Process
+	 HANDLE ProcessID, 
+	 _PEPROCESS* Process
 );
 
 PVOID ObRegistrationHandle = nullptr;
 
 NTSTATUS DriverEntry(
-	IN PDRIVER_OBJECT DriverObject, 
-	IN PUNICODE_STRING RegistryPath
+	 PDRIVER_OBJECT DriverObject, 
+	 PUNICODE_STRING RegistryPath
 );
 
 VOID Unload(
-	IN PDRIVER_OBJECT DriverObject
+	 PDRIVER_OBJECT DriverObject
 );
 
 OB_PREOP_CALLBACK_STATUS ObPreCallback(
-	IN PVOID ObRegistrationContext, 
-	IN POB_PRE_OPERATION_INFORMATION PreOpInformation
+	 PVOID ObRegistrationContext, 
+	 POB_PRE_OPERATION_INFORMATION PreOpInformation
 );
 
 VOID ObPostCallback(
-	IN PVOID ObRegistrationContext, 
-	IN POB_POST_OPERATION_INFORMATION PostOpInformation
+	 PVOID ObRegistrationContext, 
+	 POB_POST_OPERATION_INFORMATION PostOpInformation
 );
 
 PCSTR GetProcessNameById(
-	IN HANDLE ProcessId
+	 HANDLE ProcessId
 );
 
 template <typename ExportType>
 ExportType GetKernelExport(
-	IN PCWSTR zExportName
+	 PCWSTR zExportName
 );
 
-NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
 	UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -71,7 +71,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
 	return Status;
 }
 
-VOID Unload(IN PDRIVER_OBJECT DriverObject)
+VOID Unload(PDRIVER_OBJECT DriverObject)
 {
 	UNREFERENCED_PARAMETER(DriverObject);
 
@@ -89,7 +89,7 @@ VOID Unload(IN PDRIVER_OBJECT DriverObject)
 	}
 }
 
-OB_PREOP_CALLBACK_STATUS ObPreCallback(IN PVOID ObRegistrationContext, IN POB_PRE_OPERATION_INFORMATION PreOpInformation)
+OB_PREOP_CALLBACK_STATUS ObPreCallback(PVOID ObRegistrationContext, POB_PRE_OPERATION_INFORMATION PreOpInformation)
 {
 	UNREFERENCED_PARAMETER(ObRegistrationContext);
 
@@ -129,13 +129,13 @@ OB_PREOP_CALLBACK_STATUS ObPreCallback(IN PVOID ObRegistrationContext, IN POB_PR
 	return OB_PREOP_SUCCESS;
 }
 
-VOID ObPostCallback(IN PVOID ObRegistrationContext, IN POB_POST_OPERATION_INFORMATION PostOpInformation)
+VOID ObPostCallback(PVOID ObRegistrationContext, POB_POST_OPERATION_INFORMATION PostOpInformation)
 {
 	UNREFERENCED_PARAMETER(ObRegistrationContext);
 	UNREFERENCED_PARAMETER(PostOpInformation);
 }
 
-PCSTR GetProcessNameById(IN HANDLE ProcessId)
+PCSTR GetProcessNameById(HANDLE ProcessId)
 {
 	_PEPROCESS Process = nullptr;
 
@@ -154,20 +154,14 @@ PCSTR GetProcessNameById(IN HANDLE ProcessId)
 	}
 }
 
-template<typename ExportType>
-ExportType GetKernelExport(IN PCWSTR zExportName)
+template <typename ExportType>
+ExportType GetKernelExport(PCWSTR zExportName)
 {
-	__try
-	{
-		UNICODE_STRING UExportName;
+	UNICODE_STRING UExportName;
 
-		RtlInitUnicodeString(&UExportName, zExportName);
+	RtlInitUnicodeString(&UExportName, zExportName);
 
-		ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
+	ExportType ExportAddress = (ExportType)MmGetSystemRoutineAddress(&UExportName);
 
-		return ExportAddress ? ExportAddress : ExportType();
-
-	}
-
-	__except (EXCEPTION_EXECUTE_HANDLER) {}
+	return ExportAddress ? ExportAddress : ExportType(nullptr);
 }
