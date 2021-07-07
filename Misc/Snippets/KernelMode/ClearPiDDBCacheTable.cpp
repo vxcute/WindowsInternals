@@ -9,10 +9,6 @@
 #include <ntddk.h>
 #include <intrin.h>
 
-#define IMAGE_DOS_SIGNATURE      0x5A4D 
-#define PAGELK_PATTERN           0x4B4C45474150
-#define IA32_LSTAR               0xC0000082
-
 typedef PIMAGE_NT_HEADERS(NTAPI* _RtlImageNtHeader)(
 	IN PVOID ModuleAddress
 );
