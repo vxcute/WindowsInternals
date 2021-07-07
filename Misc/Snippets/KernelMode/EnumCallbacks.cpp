@@ -78,7 +78,8 @@ VOID EnumObCallbacks()
         DbgPrint("Object Handle: %p\n", ObCallback->ObHandle);
         DbgPrint("PreCall: %p\n", ObCallback->PreCall);
         DbgPrint("PostCall: %p\n", ObCallback->PostCall);
-
+        DbgPrint("Operations: %d\n", ObCallback->ObHandle->Operations);
+        DbgPrint("ObjectType: %p", ObCallback->ObHandle->ObjectType);
         DbgPrint("=============================================\n");
     }
 
@@ -94,7 +95,8 @@ VOID EnumObCallbacks()
         DbgPrint("Object Handle: %p\n", ObCallback->ObHandle);
         DbgPrint("PreCall: %p\n", ObCallback->PreCall);
         DbgPrint("PostCall: %p\n", ObCallback->PostCall);
-
+        DbgPrint("Operations: %d\n", ObCallback->ObHandle->Operations);
+        DbgPrint("ObjectType: %p", ObCallback->ObHandle->ObjectType);
         DbgPrint("=============================================\n");
     }
 }
