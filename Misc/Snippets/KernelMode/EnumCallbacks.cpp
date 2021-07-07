@@ -99,6 +99,8 @@ VOID EnumObCallbacks()
     }
 }
 
+// https://www.unknowncheats.me/forum/arma-2-a/175227-driver-disable-process-thread-object-callbacks.html
+
 VOID LocateCallbackListHeads(PLIST_ENTRY& ObProcessCallbackListHead, PLIST_ENTRY& ObThreadCallbackListHead)
 {
     POBJECT_TYPE ProcessType = *PsProcessType;
