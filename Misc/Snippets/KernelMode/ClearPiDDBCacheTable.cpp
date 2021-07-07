@@ -230,6 +230,8 @@ bool LocatePiDDB(PRTL_AVL_TABLE& PiDDBCacheTable, PERESOURCE& PiDDBLock)
     Resolve<PERESOURCE>(PiDDBLockInstr, 3, 4, &PiDDBLock);
     
     Resolve<PRTL_AVL_TABLE>(PiDDBCacheTableInstr, 3, 4, &PiDDBCacheTable);
+
+    return true; 
 }
 
 bool ClearPiDDBCache(IN PDRIVER_OBJECT DriverObject)
