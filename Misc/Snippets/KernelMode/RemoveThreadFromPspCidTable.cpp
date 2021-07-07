@@ -187,7 +187,7 @@ ExportType GetKernelExport(
 );
 
 NTSTATUS GetSysModInfo(
-    PSYSTEM_MODULE_INFORMATION& SystemModInfo
+    IN PSYSTEM_MODULE_INFORMATION& SystemModInfo
 );
 
 bool RemoveThread(
@@ -301,7 +301,7 @@ bool RemoveThread(IN HANDLE ThreadId)
 }
 
 template <class ExportType>
-ExportType GetKernelExport(PCWSTR zExportName)
+ExportType GetKernelExport(IN PCWSTR zExportName)
 {
     __try
     {
@@ -319,7 +319,7 @@ ExportType GetKernelExport(PCWSTR zExportName)
 
 
 
-NTSTATUS GetSysModInfo(PSYSTEM_MODULE_INFORMATION& SystemModInfo)
+NTSTATUS GetSysModInfo(IN PSYSTEM_MODULE_INFORMATION& SystemModInfo)
 {
     __try
     {
