@@ -29,7 +29,7 @@ typedef struct _KLDR_DATA_TABLE_ENTRY
     VOID* Spare;                                                          
     ULONG SizeOfImageNotRounded;                                          
     ULONG TimeDateStamp;                                                  
-}_KLDR_DATA_TABLE_ENTRY, *_PKLDR_DATA_TABLE_ENTRY;
+}KLDR_DATA_TABLE_ENTRY, *PKLDR_DATA_TABLE_ENTRY;
 
 NTSTATUS DriverEntry(
 	PDRIVER_OBJECT DriverObject, 
@@ -72,8 +72,8 @@ VOID EnumSystemModuleList(VOID)
 {
 	auto PsLoadedModuleList = GetKernelExport<PLIST_ENTRY>(L"PsLoadedModuleList");
 
-	for (auto CurrentKldrEntry = (_PKLDR_DATA_TABLE_ENTRY)PsLoadedModuleList->Flink; CurrentKldrEntry != (_PKLDR_DATA_TABLE_ENTRY)PsLoadedModuleList;
-		CurrentKldrEntry = (_PKLDR_DATA_TABLE_ENTRY)CurrentKldrEntry->InLoadOrderLinks.Flink)
+	for (auto CurrentKldrEntry = (PKLDR_DATA_TABLE_ENTRY)PsLoadedModuleList->Flink; CurrentKldrEntry != (PKLDR_DATA_TABLE_ENTRY)PsLoadedModuleList;
+		CurrentKldrEntry = (PKLDR_DATA_TABLE_ENTRY)CurrentKldrEntry->InLoadOrderLinks.Flink)
 
 	{
 		DbgPrint("Found %wZ at base address: %p", CurrentKldrEntry->BaseDllName, CurrentKldrEntry->DllBase); 
