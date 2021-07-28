@@ -1,4 +1,5 @@
 // hinted me to the PTE_HERIRCHY structure http://5.9.10.113/60795230/allocate-page-with-execution-privileges-at-an-arbitrary-currently-unused-virtual 
+// https://www.triplefault.io/2017/07/introduction-to-ia-32e-hardware-paging.html for page table structures 
 
 struct typedef struct _PML4E
 {
