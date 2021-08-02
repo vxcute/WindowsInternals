@@ -1,6 +1,12 @@
 #include <ntifs.h>
 #include <ntddk.h> 
 
+/*
+	credits:
+		. https://www.unknowncheats.me/forum/anti-cheat-bypass/444289-read-process-physical-memory-attach.html
+		. xeroxz (ptm, bluepill)
+*/ 
+
 DRIVER_INITIALIZE DriverEntry;
 DRIVER_UNLOAD Unload;
 
