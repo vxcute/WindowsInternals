@@ -5,6 +5,7 @@
 	credits:
 		. https://www.unknowncheats.me/forum/anti-cheat-bypass/444289-read-process-physical-memory-attach.html
 		. xeroxz (ptm, bluepill)
+		. https://www.triplefault.io/2017/07/introduction-to-ia-32e-hardware-paging.html (page table structures, also very good article on page tables) 
 */ 
 
 DRIVER_INITIALIZE DriverEntry;
