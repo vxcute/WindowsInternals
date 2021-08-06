@@ -5,8 +5,9 @@ DRIVER_INITIALIZE DriverEntry;
 DRIVER_UNLOAD Unload;
 PEPROCESS GetProcess(PCSTR ProcessName);
 PEPROCESS GetProcessByPid(UINT64 ProcessId); 
-
 EXTERN_C PCSTR PsGetProcessImageFileName(PEPROCESS Process); 
+
+constexpr auto BufferLength = 0x4000;
 
 PEPROCESS GetProcessByPid(UINT64 ProcessId)
 {
@@ -60,7 +61,7 @@ PEPROCESS GetProcess(PCSTR ProcessName)
 		return nullptr;
 	}
 
-	const auto ProcessIdInformation = static_cast<PFILE_PROCESS_IDS_USING_FILE_INFORMATION>(ExAllocatePool(NonPagedPool, 0x4000));
+	const auto ProcessIdInformation = static_cast<PFILE_PROCESS_IDS_USING_FILE_INFORMATION>(ExAllocatePool(NonPagedPool, BufferLength));
 
 	if (ProcessIdInformation == nullptr)
 	{
@@ -69,7 +70,7 @@ PEPROCESS GetProcess(PCSTR ProcessName)
 
 	RtlSecureZeroMemory(&IoStatusBlock, sizeof(IO_STATUS_BLOCK));
 
-	if (!NT_SUCCESS(NtQueryInformationFile(hFile, &IoStatusBlock, ProcessIdInformation, 0x4000, FileProcessIdsUsingFileInformation)))
+	if (!NT_SUCCESS(NtQueryInformationFile(hFile, &IoStatusBlock, ProcessIdInformation, BufferLength, FileProcessIdsUsingFileInformation)))
 	{
 		DbgPrint("[+] Failed to query file information\n");
 		return nullptr;
