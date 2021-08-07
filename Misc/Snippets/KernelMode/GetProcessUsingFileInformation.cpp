@@ -3,7 +3,7 @@
 
 DRIVER_INITIALIZE DriverEntry; 
 DRIVER_UNLOAD Unload;
-PEPROCESS GetProcess(PCSTR ProcessName);
+PEPROCESS GetProcessByName(PCSTR ProcessName);
 PEPROCESS GetProcessByPid(UINT64 ProcessId); 
 EXTERN_C PCSTR PsGetProcessImageFileName(PEPROCESS Process); 
 
@@ -23,7 +23,7 @@ PEPROCESS GetProcessByPid(UINT64 ProcessId)
 	return Process;
 }
 
-PEPROCESS GetProcess(PCSTR ProcessName)
+PEPROCESS GetProcessByName(PCSTR ProcessName)
 {
 	PEPROCESS Process = nullptr; 
 
@@ -99,7 +99,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 
 	DriverObject->DriverUnload = Unload;
 
-	GetProcess("csrss.exe");
+	GetProcessByName("csrss.exe");
 
 	return STATUS_SUCCESS;
 }
