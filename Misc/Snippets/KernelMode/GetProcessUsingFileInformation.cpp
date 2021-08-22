@@ -7,7 +7,7 @@ PEPROCESS GetProcessByName(PCSTR ProcessName);
 PEPROCESS GetProcessByPid(UINT64 ProcessId); 
 EXTERN_C PCSTR PsGetProcessImageFileName(PEPROCESS Process); 
 
-constexpr auto BufferLength = 0x4000;
+constexpr auto BufferLength = 1024*1024;
 
 PEPROCESS GetProcessByPid(UINT64 ProcessId)
 {
